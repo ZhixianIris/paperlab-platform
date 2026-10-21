@@ -266,7 +266,7 @@ export async function resizePdfPages(
 
 export async function nupPdf(file: File, layout: 2 | 4): Promise<File> {
   if (layout !== 2 && layout !== 4) throw new Error('仅支持 2 合 1 或 4 合 1');
-  const source = await loadPdf(file);
+  await loadPdf(file);
   const output = await PDFDocument.create();
   // Each source page is embedded as a vector PDF XObject rather than an image.
   const pages = await output.embedPdf(new Uint8Array(await file.arrayBuffer()));
