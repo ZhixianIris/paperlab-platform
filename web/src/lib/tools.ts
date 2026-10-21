@@ -207,6 +207,15 @@ export const PDF_TOOLS: ToolMeta[] = [
     group: 'pdf',
     icon: 'file',
   },
+  {
+    key: 'pdf.fill',
+    path: '/pdf/fill',
+    title: 'PDF 填写表单',
+    short: '填写文本、复选框和选项字段',
+    description: '识别标准 AcroForm 字段，并在浏览器中填写后保存。',
+    group: 'pdf',
+    icon: 'file',
+  },
 ];
 
 export const IMAGE_TOOLS: ToolMeta[] = [
