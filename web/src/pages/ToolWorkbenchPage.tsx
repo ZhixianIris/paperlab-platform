@@ -69,6 +69,10 @@ export function ToolWorkbenchPage({ kind }: { kind: WorkbenchKind }) {
       ? workbench.tools.filter((tool) => scope.keys.has(tool.key))
       : [];
 
+  const enabledCount = kind === 'ai'
+    ? (scope.status === 'ready' ? Number(scope.keys.has('ai.image.generate')) : 1)
+    : visibleTools.length;
+
   if (scope.status !== 'public' && scope.status !== 'ready') {
     return (
       <div className="empty-page" role={scope.status === 'loading' ? 'status' : 'alert'}>
@@ -86,7 +90,7 @@ export function ToolWorkbenchPage({ kind }: { kind: WorkbenchKind }) {
           <span className="eyebrow">{workbench.eyebrow}</span>
           <h1>{workbench.title}</h1>
         </div>
-        <span className="workbench-count">{scope.status === 'ready' ? `${visibleTools.length} 个工具` : workbench.count}</span>
+        <span className="workbench-count">{scope.status === 'ready' ? `${enabledCount} 个工具` : workbench.count}</span>
       </header>
 
       {kind === 'ai' ? (scope.status === 'ready' && !scope.keys.has('ai.image.generate') ?
