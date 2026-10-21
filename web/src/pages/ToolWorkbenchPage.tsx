@@ -1,7 +1,8 @@
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ArrowIcon, SparklesIcon } from '../components/Icons';
 import { ToolGlyph } from '../components/ToolGlyph';
 import { IMAGE_TOOLS, PDF_TOOLS, type ToolMeta } from '../lib/tools';
+import { tenantScopeMessage, useTenantToolScope } from '../lib/tenantTools';
 
 type WorkbenchKind = 'pdf' | 'image' | 'ai';
 type Tone = 'coral' | 'magenta' | 'blue' | 'purple' | 'ink';
@@ -33,14 +34,16 @@ function WorkbenchCard({
   tool,
   index,
   tone,
+  query,
 }: {
   tool: ToolMeta;
   index: number;
   tone: Tone;
+  query: string;
 }) {
   return (
     <Link
-      to={tool.path}
+      to={`${tool.path}${query}`}
       className={`workbench-card tone-${tone}`}
       data-testid={`workbench-${tool.key}`}
     >
@@ -57,10 +60,24 @@ function WorkbenchCard({
 }
 
 export function ToolWorkbenchPage({ kind }: { kind: WorkbenchKind }) {
-  const [searchParams] = useSearchParams();
+  const scope = useTenantToolScope();
   const workbench = WORKBENCH[kind];
-  const tenant = searchParams.get('tenant');
-  const aiHref = tenant ? `/ai/image?tenant=${encodeURIComponent(tenant)}` : '/ai/image';
+  const aiHref = `/ai/image${scope.query}`;
+  const visibleTools = scope.status === 'public'
+    ? workbench.tools
+    : scope.status === 'ready'
+      ? workbench.tools.filter((tool) => scope.keys.has(tool.key))
+      : [];
+
+  if (scope.status !== 'public' && scope.status !== 'ready') {
+    return (
+      <div className="empty-page" role={scope.status === 'loading' ? 'status' : 'alert'}>
+        <h1>团队工作台</h1>
+        <p>{tenantScopeMessage(scope)}</p>
+        <Link className="text-link" to="/pdf">查看公开工具</Link>
+      </div>
+    );
+  }
 
   return (
     <div className="workbench-page" data-testid={`workbench-${kind}`}>
@@ -69,11 +86,11 @@ export function ToolWorkbenchPage({ kind }: { kind: WorkbenchKind }) {
           <span className="eyebrow">{workbench.eyebrow}</span>
           <h1>{workbench.title}</h1>
         </div>
-        <span className="workbench-count">{workbench.count}</span>
+        <span className="workbench-count">{scope.status === 'ready' ? `${visibleTools.length} 个工具` : workbench.count}</span>
       </header>
 
-      {kind === 'ai' ? (
-        <div className="workbench-grid workbench-grid-ai">
+      {kind === 'ai' ? (scope.status === 'ready' && !scope.keys.has('ai.image.generate') ?
+        <p className="muted">此团队尚未启用 AI 出图。</p> : <div className="workbench-grid workbench-grid-ai">
           <Link to={aiHref} className="workbench-card tone-ink workbench-ai-card" data-testid="workbench-ai-image">
             <div className="workbench-card-top">
               <span className="workbench-index">01</span>
@@ -87,12 +104,13 @@ export function ToolWorkbenchPage({ kind }: { kind: WorkbenchKind }) {
         </div>
       ) : (
         <div className={`workbench-grid workbench-grid-${kind}`}>
-          {workbench.tools.map((tool, index) => (
+          {visibleTools.map((tool, index) => (
             <WorkbenchCard
               key={tool.key}
               tool={tool}
               index={index}
               tone={TONES[index % TONES.length]}
+              query={scope.query}
             />
           ))}
         </div>
