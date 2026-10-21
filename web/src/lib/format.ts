@@ -29,22 +29,21 @@ export function formatBytes(bytes: number): string {
 export function jobStatusLabel(status: string): string {
   switch (status) {
     case 'processing':
-      return '处理中';
+      return '生成中';
     case 'pending_reconciliation':
-      return '待核对';
+      return '确认中';
     case 'succeeded':
-      return '已完成';
     case 'settled':
-      return '已结算';
+      return '已完成';
     case 'failed':
-      return '失败';
+      return '未成功';
     default:
       return status;
   }
 }
 
 export function roleLabel(role: string): string {
-  return role === 'tenant_owner' ? '租户所有者' : '租户成员';
+  return role === 'tenant_owner' ? '空间所有者' : '成员';
 }
 
 export function toolLabel(key: string): string {

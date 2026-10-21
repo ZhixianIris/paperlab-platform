@@ -1,1 +1,1 @@
-actionlint exit=0
+actionlint_exit=0

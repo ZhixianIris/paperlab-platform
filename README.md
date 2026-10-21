@@ -23,10 +23,14 @@ jobs, balances, orders, tenants and admin actions live in CloudBase.
 
 ## What is implemented
 
-- One React/Vite site: `/`, `/pdf/*`, `/image/*`, `/ai`, `/login`, `/account`,
-  `/t/:tenantSlug`, `/admin`.
+- Three tool workbenches: `/pdf`, `/image`, `/ai`; root redirects to `/pdf`.
+  Tool pages, `/login`, `/account`, `/t/:tenantSlug`, `/admin` share one site.
+- MiniMax-inspired white canvas, bundled DM Sans, black pill actions and gradient
+  tool cards.
 - Local-only PDF merge, split, rotate (pdf-lib), image crop, resize, convert and
   compress; PDF.js preview; no file upload, no file fingerprint, no analytics.
+- Image crop/resize are direct-manipulation editors with draggable handles; no
+  coordinate/size inputs. Crop works fully offline.
 - CloudBase Auth email/password + email OTP signup through `@cloudbase/js-sdk`.
 - CloudBase PG schema with 12 tables, GRANT + RLS, security-definer membership
   helpers avoiding recursive `memberships` policies, immutable ledger/audit log.
@@ -40,8 +44,9 @@ jobs, balances, orders, tenants and admin actions live in CloudBase.
 - `cloudbaserc.json` v2.1, pinned CLI 3.8.4, PR CI with no deploy, main-only
   production deploy, database migrations before release, SPA fallback and public
   smoke tests after release.
-- 23 API/RLS/provider tests, 3 PDF unit tests and 9 Playwright journeys. The
-  browser tests include offline PDF and image journeys and two-tenant isolation.
+- 23 API/RLS/provider tests, 3 PDF unit tests and 10 Playwright journeys. The
+  browser tests include offline PDF and image journeys, drag-handle editors,
+  workbench routing and two-tenant isolation.
 
 ## Local development
 
@@ -135,14 +140,16 @@ the deploy job reports a warning and is skipped; it never fakes a deployment.
 ## Screenshots
 
 All screenshots come from the real local UI backed by PostgreSQL and the E2E
-harness. The model card is explicitly labelled as the test fixture; it is not a
-real AI provider result.
+harness. AI screenshots use the local deterministic fixture provider; its
+display name is generic in the UI and it is not a real provider result.
 
 | | |
 | --- | --- |
-| **Local-first landing** ![Landing](docs/screenshots/home.png) | **PDF merge, never uploaded** ![PDF merge](docs/screenshots/pdf-merge.png) |
-| **Offline PDF merge proof** ![Offline merge](docs/screenshots/offline-pdf-merge.png) | **Image crop with local result** ![Image crop](docs/screenshots/image-crop.png) |
-| **Tenant workspace with budgets** ![Tenant](docs/screenshots/tenant-alpha.png) | **AI studio, server-priced** ![AI studio](docs/screenshots/ai-studio.png) |
+| **PDF workbench** ![PDF workbench](docs/screenshots/pdf-workbench.png) | **Image workbench** ![Image workbench](docs/screenshots/image-workbench.png) |
+| **AI workbench** ![AI workbench](docs/screenshots/ai-workbench.png) | **Login** ![Login](docs/screenshots/login.png) |
+| **Drag-to-crop editor** ![Image crop](docs/screenshots/image-crop.png) | **Drag-to-resize editor** ![Image resize](docs/screenshots/image-resize.png) |
+| **PDF merge, never uploaded** ![PDF merge](docs/screenshots/pdf-merge.png) | **Offline PDF merge proof** ![Offline merge](docs/screenshots/offline-pdf-merge.png) |
+| **Tenant workspace with budgets** ![Tenant](docs/screenshots/tenant-alpha.png) | **AI studio** ![AI studio](docs/screenshots/ai-studio.png) |
 | **Admin tenant and member controls** ![Admin](docs/screenshots/admin-tenants.png) | **Admin model and price controls** ![Admin models](docs/screenshots/admin-models.png) |
 
 More evidence: [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md),

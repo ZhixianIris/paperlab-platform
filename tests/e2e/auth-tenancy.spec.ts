@@ -33,7 +33,7 @@ test.describe('authentication and tenant isolation', () => {
     await expect(page.getByText('alice@paperlab.test').first()).toBeVisible();
 
     await page.goto('/t/beta');
-    await expect(page.getByRole('heading', { name: '你不在这个租户里' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '你没有访问权限' })).toBeVisible();
 
     const bob = await page.context().browser()!.newContext({ baseURL: 'http://127.0.0.1:4173' });
     const bobPage = await bob.newPage();
@@ -41,7 +41,7 @@ test.describe('authentication and tenant isolation', () => {
     await bobPage.goto('/t/beta');
     await expect(bobPage.getByRole('heading', { name: 'Beta Works' })).toBeVisible();
     await bobPage.goto('/t/alpha');
-    await expect(bobPage.getByRole('heading', { name: '你不在这个租户里' })).toBeVisible();
+    await expect(bobPage.getByRole('heading', { name: '你没有访问权限' })).toBeVisible();
     await bob.close();
   });
 
@@ -78,7 +78,7 @@ test.describe('authentication and tenant isolation', () => {
     await expect(page.getByTestId('admin-tool-pdf.merge')).not.toBeChecked();
 
     await page.getByTestId('admin-tab-models').click();
-    await expect(page.getByText('Fixture Image (test only)')).toBeVisible();
+    await expect(page.getByText('标准图像模型')).toBeVisible();
     await clickSwitch(page, 'model-toggle-fixture');
     await expect(page.getByTestId('model-toggle-fixture')).not.toBeChecked();
     await clickSwitch(page, 'model-toggle-fixture');

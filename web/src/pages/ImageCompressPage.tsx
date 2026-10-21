@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FileDrop } from '../components/FileDrop';
 import { ResultCard } from '../components/ResultCard';
 import { ToolPageShell, ToolProcessButton } from '../components/ToolPageShell';
@@ -6,15 +6,22 @@ import { IMAGE_TOOLS } from '../lib/tools';
 import { formatBytes } from '../lib/format';
 import { inspectImage, compressImage, type ImageInfo, IMAGE_ACCEPT } from '../features/tools/image/operations';
 import { useObjectUrl } from '../features/tools/image/useObjectUrl';
+import { BeforeAfter } from '../features/tools/image/BeforeAfter';
 
 const tool = IMAGE_TOOLS[3];
+
+const PRESETS = [
+  { id: 'small', label: '轻量', note: '优先更小体积', maxSizeMB: 0.35, quality: 60, maxDimension: 1800 },
+  { id: 'balanced', label: '均衡', note: '清晰与体积平衡', maxSizeMB: 1, quality: 78, maxDimension: 2800 },
+  { id: 'quality', label: '清晰', note: '尽量保留细节', maxSizeMB: 3, quality: 92, maxDimension: 4096 },
+] as const;
+
+type PresetId = (typeof PRESETS)[number]['id'];
 
 export function ImageCompressPage() {
   const [files, setFiles] = useState<File[]>([]);
   const [info, setInfo] = useState<ImageInfo | null>(null);
-  const [maxSizeMB, setMaxSizeMB] = useState(1);
-  const [quality, setQuality] = useState(80);
-  const [maxDimension, setMaxDimension] = useState(4096);
+  const [presetId, setPresetId] = useState<PresetId>('balanced');
   const [processing, setProcessing] = useState(false);
   const [result, setResult] = useState<File | null>(null);
   const [saving, setSaving] = useState<number | null>(null);
@@ -42,12 +49,13 @@ export function ImageCompressPage() {
 
   async function process() {
     if (!file) return;
+    const preset = PRESETS.find((item) => item.id === presetId) ?? PRESETS[1];
     setError('');
     setResult(null);
     setSaving(null);
     setProcessing(true);
     try {
-      const output = await compressImage(file, { maxSizeMB, quality, maxDimension });
+      const output = await compressImage(file, preset);
       setResult(output);
       setSaving(Math.max(0, Math.round((1 - output.size / file.size) * 100)));
     } catch (processError) {
@@ -57,11 +65,9 @@ export function ImageCompressPage() {
     }
   }
 
-  const related = useMemo(() => IMAGE_TOOLS.filter((item) => item.key !== tool.key), []);
-
   return (
-    <ToolPageShell tool={tool} related={related}>
-      <div className="workbench-section">
+    <ToolPageShell tool={tool}>
+      {!file ? (
         <FileDrop
           accept={IMAGE_ACCEPT}
           files={files}
@@ -69,49 +75,61 @@ export function ImageCompressPage() {
             setFiles(next);
             setResult(null);
             setError('');
-            setSaving(null);
           }}
           title="选择要压缩的图片"
-          hint="压缩在浏览器内用 Web Worker 完成，不上传文件。"
+          hint="拖入或点击选择"
           testId="image-compress-drop"
         />
-        {url && info ? (
-          <div className="image-preview-wrap">
-            <img src={url} alt="待压缩图片" className="image-preview" />
-            <span className="image-preview-meta">{info.width} × {info.height} · {formatBytes(info.size)}</span>
+      ) : (
+        <>
+          <div className="editor-filebar">
+            <div>
+              <span className="file-kind">IMG</span>
+              <strong>{file.name}</strong>
+              <span>{info ? `${formatBytes(info.size)} · ${info.width} × ${info.height}` : '读取中…'}</span>
+            </div>
+            <button type="button" className="text-button" onClick={() => { setFiles([]); setResult(null); }}>
+              更换图片
+            </button>
           </div>
-        ) : null}
-      </div>
-      <div className="field-grid">
-        <label className="field">
-          <span>目标体积（MB）</span>
-          <input type="number" min={0.05} max={20} step={0.05} value={maxSizeMB} onChange={(event) => { setMaxSizeMB(Number(event.target.value) || 0.05); setResult(null); }} data-testid="compress-size" />
-          <small>算法会在不超过目标体积的前提下尽量保留清晰度。</small>
-        </label>
-        <label className="field">
-          <span>初始质量 <strong>{quality}%</strong></span>
-          <input type="range" min={20} max={100} value={quality} onChange={(event) => { setQuality(Number(event.target.value)); setResult(null); }} />
-        </label>
-        <label className="field">
-          <span>最大边长（px）</span>
-          <input type="number" min={256} max={8192} value={maxDimension} onChange={(event) => { setMaxDimension(Number(event.target.value) || 4096); setResult(null); }} />
-          <small>仅当原图超过此边长时才会缩小。</small>
-        </label>
-      </div>
-      {error ? <p className="form-error" role="alert" data-testid="tool-error">{error}</p> : null}
-      <div className="action-row">
-        <ToolProcessButton processing={processing} onClick={() => void process()} disabled={!file || !info}>
-          压缩图片
-        </ToolProcessButton>
-        <span className="action-note">保持原格式；透明通道按浏览器编码器处理。</span>
-      </div>
-      {result ? (
-        <ResultCard
-          file={result}
-          title="压缩完成"
-          detail={`${formatBytes(file?.size ?? 0)} → ${formatBytes(result.size)}${saving !== null ? ` · 减少约 ${saving}%` : ''}`}
-        />
-      ) : null}
+          {url && info ? (
+            <div className="convert-preview">
+              <img src={url} alt="待压缩图片" />
+            </div>
+          ) : null}
+          <div className="preset-grid" role="group" aria-label="压缩强度">
+            {PRESETS.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                className={`preset-card ${presetId === preset.id ? 'active' : ''}`}
+                onClick={() => { setPresetId(preset.id); setResult(null); }}
+                data-testid={`compress-preset-${preset.id}`}
+              >
+                <strong>{preset.label}</strong>
+                <span>{preset.note}</span>
+              </button>
+            ))}
+          </div>
+          {error ? <p className="form-error" role="alert" data-testid="tool-error">{error}</p> : null}
+          <div className="action-row">
+            <ToolProcessButton processing={processing} onClick={() => void process()} disabled={!info}>
+              压缩图片
+            </ToolProcessButton>
+            <span className="action-note">{info ? formatBytes(info.size) : ''}</span>
+          </div>
+          {result ? (
+            <>
+              <BeforeAfter before={file} after={result} beforeLabel="原图" afterLabel="压缩后" />
+              <ResultCard
+                file={result}
+                title="压缩完成"
+                detail={`${formatBytes(file.size)} → ${formatBytes(result.size)}${saving !== null ? ` · 减少约 ${saving}%` : ''}`}
+              />
+            </>
+          ) : null}
+        </>
+      )}
     </ToolPageShell>
   );
 }

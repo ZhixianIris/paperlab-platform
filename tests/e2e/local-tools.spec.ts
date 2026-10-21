@@ -43,6 +43,21 @@ async function pdfText(file: string): Promise<string> {
   }
 }
 
+async function dragTestId(page: Page, testId: string, dx: number, dy: number): Promise<void> {
+  const target = page.getByTestId(testId);
+  await target.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(50);
+  const box = await target.boundingBox();
+  if (!box) throw new Error(`No bounding box for ${testId}`);
+  const startX = box.x + box.width / 2;
+  const startY = box.y + box.height / 2;
+  await page.mouse.move(startX, startY);
+  await page.mouse.down();
+  await page.mouse.move(startX + dx, startY + dy, { steps: 12 });
+  await page.mouse.up();
+  await page.waitForTimeout(80);
+}
+
 test.describe('local-only PDF and image tools', () => {
   test('PDF merge works fully offline, keeps all pages and the text layer', async ({ page, context }, testInfo) => {
     const requests: string[] = [];
@@ -101,7 +116,7 @@ test.describe('local-only PDF and image tools', () => {
     expect(await pdfText(rotatedFile)).toContain('PAPERLAB BETA');
   });
 
-  test('image crop works fully offline and produces exact dimensions', async ({ page, context }, testInfo) => {
+  test('image crop uses drag handles fully offline and produces a cropped image', async ({ page, context }, testInfo) => {
     const requests: string[] = [];
     page.on('request', (request) => {
       if (/^https?:/.test(request.url()) && !request.url().startsWith('http://127.0.0.1:4173')) {
@@ -111,14 +126,12 @@ test.describe('local-only PDF and image tools', () => {
     await page.goto('/image/crop');
     await expect(page.getByRole('heading', { name: '图片裁剪' })).toBeVisible();
     await page.getByTestId('image-crop-drop-input').setInputFiles(FIXTURES.image);
-    await expect(page.getByText(/原始尺寸 800 × 600/)).toBeVisible();
+    await expect(page.getByText(/原图 800 × 600/)).toBeVisible();
+    await expect(page.getByTestId('crop-selection')).toBeVisible();
 
     await context.setOffline(true);
     await expect(page.getByTestId('offline-banner')).toBeVisible();
-    await page.getByTestId('crop-x').fill('100');
-    await page.getByTestId('crop-y').fill('50');
-    await page.getByTestId('crop-width').fill('300');
-    await page.getByTestId('crop-height').fill('200');
+    await dragTestId(page, 'crop-handle-se', -150, -105);
     await page.getByTestId('process-button').click();
     await expect(page.getByTestId('result-card')).toBeVisible();
     await page.screenshot({ path: testInfo.outputPath('offline-image-crop.png') });
@@ -129,24 +142,28 @@ test.describe('local-only PDF and image tools', () => {
     const file = await downloadedFile(page, testInfo);
     expect(requests).toEqual([]);
     const png = PNG.sync.read(await fs.readFile(file));
-    expect(png.width).toBe(300);
-    expect(png.height).toBe(200);
+    expect(png.width).toBeLessThan(800);
+    expect(png.height).toBeLessThan(600);
+    expect(png.width).toBeGreaterThan(0);
+    expect(png.height).toBeGreaterThan(0);
   });
 
-  test('image resize, convert and compress produce downloadable outputs', async ({ page }, testInfo) => {
+  test('image resize uses a drag handle; convert and compress use visual presets', async ({ page }, testInfo) => {
     await page.goto('/image/resize');
     await page.getByTestId('image-resize-drop-input').setInputFiles(FIXTURES.image);
-    await page.getByTestId('resize-width').fill('400');
+    await expect(page.getByTestId('resize-frame')).toBeVisible();
+    await dragTestId(page, 'resize-handle-se', -170, -130);
     await page.getByTestId('process-button').click();
     await expect(page.getByTestId('result-card')).toBeVisible();
     const resizedFile = await downloadedFile(page, testInfo);
     const resized = PNG.sync.read(await fs.readFile(resizedFile));
-    expect(resized.width).toBe(400);
-    expect(resized.height).toBe(300);
+    expect(resized.width).toBeLessThan(800);
+    expect(resized.height).toBeLessThan(600);
+    expect(resized.width).toBeGreaterThan(0);
 
     await page.goto('/image/convert');
     await page.getByTestId('image-convert-drop-input').setInputFiles(FIXTURES.image);
-    await page.getByTestId('convert-format').selectOption('image/webp');
+    await page.getByTestId('convert-format-webp').click();
     await page.getByTestId('process-button').click();
     await expect(page.getByTestId('result-card')).toBeVisible();
     const webpFile = await downloadedFile(page, testInfo);
@@ -156,9 +173,11 @@ test.describe('local-only PDF and image tools', () => {
 
     await page.goto('/image/compress');
     await page.getByTestId('image-compress-drop-input').setInputFiles(FIXTURES.image);
-    await page.getByTestId('compress-size').fill('0.05');
+    await page.getByTestId('compress-preset-small').click();
     await page.getByTestId('process-button').click();
     await expect(page.getByTestId('result-card')).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByTestId('compare-stage')).toBeVisible();
+    await dragTestId(page, 'compare-stage', -140, 0);
     const compressedFile = await downloadedFile(page, testInfo);
     const stats = await fs.stat(compressedFile);
     expect(stats.size).toBeGreaterThan(0);

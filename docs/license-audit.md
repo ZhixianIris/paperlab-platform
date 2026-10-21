@@ -1,7 +1,7 @@
 # Licence audit result
 
-- Packages: 705
-- Allowed: 705
+- Packages: 706
+- Allowed: 706
 - Denied: 0
 - Unknown reviewed dev-only: 1
 

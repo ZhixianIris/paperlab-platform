@@ -145,7 +145,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
       if (!runtime.cloudbaseConfigured) {
-        throw new Error('CloudBase 尚未配置，无法登录');
+        throw new Error('登录功能暂不可用');
       }
       try {
         const { error: signInError } = await getCloudBaseAuth().signInWithPassword({
@@ -167,7 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error('E2E 模式不开放注册，请使用测试账号');
       }
       if (!runtime.cloudbaseConfigured) {
-        throw new Error('CloudBase 尚未配置，无法注册');
+        throw new Error('登录功能暂不可用');
       }
       try {
         const { data, error: signUpError } = await getCloudBaseAuth().signUp({

@@ -9,8 +9,8 @@ test.describe('AI studio and server-side billing', () => {
 
   test('a tenant member generates an image, sees it, and is charged the database price', async ({ page }, testInfo) => {
     await loginAs(page, USERS.alice);
-    await page.goto('/ai?tenant=alpha');
-    await expect(page.getByRole('heading', { name: '把提示词变成图像。' })).toBeVisible();
+    await page.goto('/ai/image?tenant=alpha');
+    await expect(page.getByRole('heading', { name: 'AI 出图' })).toBeVisible();
     await expect(page.getByTestId('model-fixture')).toBeVisible();
     await expect(page.getByTestId('ai-unconfigured')).toHaveCount(0);
 
@@ -42,11 +42,11 @@ test.describe('AI studio and server-side billing', () => {
 
   test('a tenant without balance is rejected before a model call', async ({ page }) => {
     await loginAs(page, USERS.bob);
-    await page.goto('/ai?tenant=beta');
+    await page.goto('/ai/image?tenant=beta');
     await expect(page.getByTestId('model-fixture')).toBeVisible();
     await page.getByTestId('ai-prompt').fill('this request must be rejected before provider call');
     await page.getByTestId('ai-generate').click();
-    await expect(page.getByText(/余额不足/)).toBeVisible();
+    await expect(page.getByText(/额度不足/)).toBeVisible();
     await expect(page.getByTestId('ai-result-image')).toHaveCount(0);
   });
 });

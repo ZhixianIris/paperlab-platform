@@ -3,8 +3,8 @@
 PaperLab includes and depends on third-party open-source software. This file is
 generated from the installed npm tree by "npm run audit:licenses".
 
-- Generated: 2026-10-21T11:33:36.791Z
-- Packages audited: 705
+- Generated: 2026-10-21T12:24:12.533Z
+- Packages audited: 706
 - Denied packages: 0
 - Full machine-readable inventory: [docs/dependency-licenses.json](docs/dependency-licenses.json)
 - OmniTools source license: [third_party/omni-tools/LICENSE](third_party/omni-tools/LICENSE)
@@ -26,7 +26,8 @@ fails CI.
 | Package | Version | License |
 | --- | --- | --- |
 | React / React DOM | 18.3.1 | MIT |
-| React Router DOM | 6.30.1 | MIT |
+| React Router DOM | 6.30.6 | MIT |
+| @fontsource-variable/dm-sans | 5.3.0 | OFL-1.1 |
 | pdf-lib | 1.17.1 | MIT |
 | pdfjs-dist | 5.4.149 | Apache-2.0 |
 | browser-image-compression | 2.0.2 | MIT |
@@ -53,6 +54,7 @@ fails CI.
 | CC-BY-4.0 | 1 |
 | CC0-1.0 | 1 |
 | MIT-0 | 1 |
+| OFL-1.1 | 1 |
 | Python-2.0 | 1 |
 | UNKNOWN | 1 |
 | Unlicense | 1 |

@@ -7,4 +7,4 @@ ALLOWED  caniuse-lite@1.0.30001817 — permissive with attribution/source notice
 ALLOWED  json-schema@0.4.0 — permissive with attribution/source notice
 ALLOWED  spdx-exceptions@2.5.0 — permissive with attribution/source notice
 ALLOWED  spdx-ranges@2.1.1 — permissive with attribution/source notice
-PASS  705 dependency licences audited; no denied licences
+PASS  706 dependency licences audited; no denied licences

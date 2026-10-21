@@ -75,32 +75,22 @@ export function LoginPage() {
     }
   }
 
-  function fillDemo(kind: 'admin' | 'alice' | 'bob') {
-    const accounts = {
-      admin: ['admin@paperlab.test', 'Passw0rd!'],
-      alice: ['alice@paperlab.test', 'Passw0rd!'],
-      bob: ['bob@paperlab.test', 'Passw0rd!'],
-    } as const;
-    setEmail(accounts[kind][0]);
-    setPassword(accounts[kind][1]);
-    setError('');
-  }
-
-  return (
-    <div className="auth-page">
+  return (    <div className="auth-page">
       <div className="auth-panel">
-        <span className="eyebrow">ACCOUNT / CLOUDBASE AUTH</span>
-        <h1>{mode === 'otp' ? '输入邮箱验证码' : mode === 'register' ? '创建你的账号' : '回到工作台'}</h1>
+        <span className="eyebrow">ACCOUNT</span>
+        <h1>{mode === 'otp' ? '输入验证码' : mode === 'register' ? '创建账号' : '登录工作台'}</h1>
         <p className="auth-lede">
           {mode === 'otp'
-            ? `验证码已发送到 ${email}。验证后即完成注册并登录。`
-            : '本地工具无需登录。登录后可进入租户工作台、使用 AI 出图与额度账本。'}
+            ? `验证码已发送到 ${email}。`
+            : mode === 'register'
+              ? '使用邮箱验证码完成注册。'
+              : '登录后可使用 AI 出图与空间功能。'}
         </p>
 
         {configMissing ? (
           <div className="notice notice-warn">
-            <strong>CloudBase 尚未配置</strong>
-            <p>当前构建缺少环境 ID 或 Publishable Key。本地 PDF / 图片工具仍可正常使用；登录与 AI 功能不可用。</p>
+            <strong>登录暂不可用</strong>
+            <p>本地 PDF 和图片工具仍可正常使用。</p>
           </div>
         ) : null}
 
@@ -174,26 +164,17 @@ export function LoginPage() {
             <button type="button" className="text-button" onClick={() => { setMode('login'); setError(''); }}>返回登录</button>
           )}
         </div>
-
-        {runtime.e2eMode ? (
-          <div className="demo-accounts">
-            <span>E2E 测试账号</span>
-            <button type="button" onClick={() => fillDemo('admin')}>管理员</button>
-            <button type="button" onClick={() => fillDemo('alice')} data-testid="demo-alice">Alice</button>
-            <button type="button" onClick={() => fillDemo('bob')}>Bob</button>
-          </div>
-        ) : null}
       </div>
       <aside className="auth-side">
-        <div className="auth-side-badge"><LockIcon size={18} /> CloudBase 身份认证</div>
-        <h2>一个账号，<br />进入多个租户。</h2>
-        <p>身份由 CloudBase Auth 托管。平台不存储密码，也不会把第一个注册用户自动变成管理员。</p>
+        <div className="auth-side-badge"><LockIcon size={18} /> 安全登录</div>
+        <h2>你的空间，<br />你的额度。</h2>
+        <p>本地工具无需登录。登录后可保存 AI 作品、查看剩余额度与管理空间成员。</p>
         <ul>
-          <li><SparklesIcon size={16} /> AI 请求由服务端认证并计费</li>
-          <li><LockIcon size={16} /> 租户隔离：GRANT + RLS</li>
-          <li><LockIcon size={16} /> 账本只增不改</li>
+          <li><SparklesIcon size={16} /> AI 图像生成</li>
+          <li><LockIcon size={16} /> 团队空间</li>
+          <li><LockIcon size={16} /> 用量记录</li>
         </ul>
-        <Link to="/" className="text-link">先使用本地工具 →</Link>
+        <Link to="/pdf" className="text-link">先使用本地工具 →</Link>
       </aside>
     </div>
   );

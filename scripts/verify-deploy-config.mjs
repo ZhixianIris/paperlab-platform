@@ -62,7 +62,7 @@ check(!/AKID[A-Za-z0-9]/.test(serialized), 'no obvious Tencent secret id in clou
 const migrations = (await fs.readdir(path.join(root, 'cloudbase/migrations'))).filter((name) =>
   name.endsWith('.sql'),
 );
-check(migrations.length >= 3, 'at least three SQL migrations are required');
+check(migrations.length >= 4, 'at least four SQL migrations are required');
 check(
   migrations.every((name) => /^\d{14}_[a-z0-9_]+\.sql$/.test(name)),
   'migration filenames must be <14-digit timestamp>_<name>.sql',

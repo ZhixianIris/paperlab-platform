@@ -51,7 +51,7 @@ export function PdfPreview({ file }: { file: File }) {
   return (
     <div className="pdf-preview">
       <div className="pdf-preview-head">
-        <span><FileIcon size={16} /> PDF.js 本地预览</span>
+        <span><FileIcon size={16} /> 本地预览</span>
         <button type="button" className="text-button" onClick={() => void renderPreview()} data-testid="pdf-preview">
           {state === 'ready' ? '重新预览第一页' : '预览第一页'}
         </button>

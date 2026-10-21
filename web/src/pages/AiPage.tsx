@@ -4,6 +4,7 @@ import { useAuth } from '../lib/auth';
 import { callPlatformApi } from '../lib/api';
 import type { AiJob, GenerateResult, ModelInfo, TenantDashboard } from '../lib/types';
 import { formatDate, formatMoney, jobStatusLabel } from '../lib/format';
+import { userError, userMessageForCode } from '../lib/userMessages';
 import { downloadDataUrl } from '../lib/download';
 import { useToast } from '../components/Toast';
 import { AlertIcon, DownloadIcon, LockIcon, SparklesIcon } from '../components/Icons';
@@ -65,7 +66,7 @@ export function AiPage() {
         return nextModels.find((model) => model.available)?.id ?? nextModels[0]?.id ?? '';
       });
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : '无法加载创作台');
+      setError(userError(loadError, '无法加载 AI 工作台'));
     } finally {
       setLoading(false);
     }
@@ -93,7 +94,7 @@ export function AiPage() {
   async function generate() {
     if (!selectedMembership || !selectedModel) return;
     if (!selectedModel.available) {
-      setError('该模型当前不可用，请联系管理员检查模型开关与供应商密钥');
+      setError('该功能暂不可用，请稍后再试');
       return;
     }
     setGenerating(true);
@@ -111,18 +112,18 @@ export function AiPage() {
       setActiveJob(result.job);
       if (result.error) {
         if (result.error.code !== 'pending_reconciliation') {
-          push(result.error.message, 'error');
+          push(userMessageForCode(result.error.code, '生成未成功'), 'error');
           setRequestId(newRequestId());
         } else {
-          push(result.error.message, 'info');
+          push('生成结果确认中，额度会暂时保留', 'info');
         }
       } else {
-        push('图片已生成并完成结算', 'success');
+        push('图片已生成', 'success');
         setRequestId(newRequestId());
       }
       await loadData();
     } catch (generateError) {
-      setError(generateError instanceof Error ? generateError.message : '生成失败');
+      setError(userError(generateError, '生成失败'));
     } finally {
       setGenerating(false);
     }
@@ -133,16 +134,16 @@ export function AiPage() {
     return image?.dataUrl || image?.url || null;
   }, [activeJob]);
 
-  if (status === 'loading') return <div className="page-loading">正在载入创作台…</div>;
+  if (status === 'loading') return <div className="page-loading">正在加载…</div>;
 
   if (status !== 'authenticated' || !session) {
     return (
       <div className="empty-page">
         <SparklesIcon size={44} />
-        <span className="eyebrow">AI STUDIO</span>
-        <h1>登录后开始创作</h1>
-        <p>AI 调用需要 CloudBase 身份、租户成员资格和可用额度。文件工具无需登录。</p>
-        <Link to="/login?next=/ai" className="button button-accent">登录</Link>
+        <span className="eyebrow">AI IMAGE</span>
+        <h1>登录后使用 AI 出图</h1>
+        <p>本地工具无需登录。</p>
+        <Link to="/login?next=/ai/image" className="button button-accent">登录</Link>
       </div>
     );
   }
@@ -151,8 +152,8 @@ export function AiPage() {
     return (
       <div className="empty-page">
         <LockIcon size={42} />
-        <h1>还没有租户</h1>
-        <p>AI 工作台属于租户。请联系平台管理员或租户所有者，用你的注册邮箱添加成员。</p>
+        <h1>还没有空间</h1>
+        <p>请联系空间管理员邀请你加入。</p>
         <Link to="/account" className="button button-ghost">查看账户</Link>
       </div>
     );
@@ -170,12 +171,12 @@ export function AiPage() {
     <div className="ai-page">
       <header className="ai-head">
         <div>
-          <span className="eyebrow">AI STUDIO / CLOUDBASE BILLING</span>
-          <h1>把提示词变成图像。</h1>
-          <p>服务端选择价格、预留余额、调用供应商、结算并写入账本。前端不接触密钥。</p>
+          <span className="eyebrow">AI IMAGE</span>
+          <h1>AI 出图</h1>
+          <p>描述你想要的画面，生成可下载的图片。</p>
         </div>
         <label className="tenant-select">
-          <span>当前租户</span>
+          <span>当前空间</span>
           <select value={selectedTenantId} onChange={(event) => chooseTenant(event.target.value)} data-testid="ai-tenant-select">
             {memberships.map((membership) => (
               <option key={membership.tenantId} value={membership.tenantId}>{membership.tenantName}</option>
@@ -186,10 +187,10 @@ export function AiPage() {
 
       {dashboard ? (
         <section className="ai-metrics">
-          <div><span>可用余额</span><strong>{formatMoney(dashboard.wallet.availableCents)}</strong></div>
-          <div><span>预占</span><strong>{formatMoney(dashboard.wallet.reservedCents)}</strong></div>
+          <div><span>可用额度</span><strong>{formatMoney(dashboard.wallet.availableCents)}</strong></div>
+          <div><span>占用中</span><strong>{formatMoney(dashboard.wallet.reservedCents)}</strong></div>
           <div><span>本月用量</span><strong>{formatMoney(dashboard.usage.userMonthSpentCents)}</strong></div>
-          <div><span>我的月度上限</span><strong>{formatMoney(dashboard.membership.userBudgetCents)}</strong></div>
+          <div><span>我的上限</span><strong>{formatMoney(dashboard.membership.userBudgetCents)}</strong></div>
         </section>
       ) : null}
 
@@ -197,8 +198,8 @@ export function AiPage() {
         <div className="notice notice-warn" data-testid="ai-unconfigured">
           <AlertIcon size={18} />
           <div>
-            <strong>图像模型尚未配置</strong>
-            <p>管理员尚未启用模板或服务端缺少供应商密钥。页面不会发起任务，也不会扣费。请联系平台管理员配置 <code>OPENAI_API_KEY</code> 并启用模型。</p>
+            <strong>AI 出图暂未开放</strong>
+            <p>请稍后再试或联系空间管理员。</p>
           </div>
         </div>
       ) : null}
@@ -206,18 +207,18 @@ export function AiPage() {
       {error ? <div className="notice notice-error" role="alert">{error}</div> : null}
 
       {loading ? (
-        <div className="page-loading">正在读取模型与余额…</div>
+        <div className="page-loading">正在加载…</div>
       ) : (
         <div className="ai-layout">
           <section className="panel ai-compose">
             <div className="panel-head">
               <h2>图像生成</h2>
-              <span className="muted">按次计费 · 服务端定价</span>
+              <span className="muted">按张消耗额度</span>
             </div>
 
             <div className="model-list" role="radiogroup" aria-label="选择模型">
               {models.length === 0 ? (
-                <p className="empty-text">管理员尚未启用任何模型。启用后这里会显示价格和可用状态。</p>
+                <p className="empty-text">该功能暂未开放。</p>
               ) : (
                 models.map((model) => (
                   <button
@@ -235,13 +236,10 @@ export function AiPage() {
                     <span className="model-radio" aria-hidden="true" />
                     <span className="model-info">
                       <strong>{model.displayName}</strong>
-                      <small>{model.provider} / {model.model}</small>
                       <small>
                         {model.available
-                          ? `${formatMoney(model.unitPriceCents)} / 张 · 最多 ${model.maxImages} 张`
-                          : model.unavailableReason === 'provider_not_configured'
-                            ? '供应商密钥未配置'
-                            : '管理员已停用'}
+                          ? `${formatMoney(model.unitPriceCents)} / 张`
+                          : '暂不可用'}
                       </small>
                     </span>
                   </button>
@@ -250,7 +248,7 @@ export function AiPage() {
             </div>
 
             <label className="field">
-              <span>提示词</span>
+              <span>画面描述</span>
               <textarea
                 rows={5}
                 value={prompt}
@@ -288,9 +286,9 @@ export function AiPage() {
             </div>
 
             <div className="cost-preview">
-              <span>预估扣费</span>
+              <span>本次消耗</span>
               <strong>{selectedModel ? formatMoney(selectedModel.unitPriceCents * count) : '—'}</strong>
-              <small>最终价格以数据库中的模型价格为准，前端无法指定价格。</small>
+              <small>生成成功后扣除额度。</small>
             </div>
 
             <button
@@ -300,9 +298,8 @@ export function AiPage() {
               onClick={() => void generate()}
               data-testid="ai-generate"
             >
-              {generating ? <><span className="spinner" /> 生成中，请勿关闭…</> : <><SparklesIcon size={18} /> 生成图像</>}
+              {generating ? <><span className="spinner" /> 生成中…</> : <><SparklesIcon size={18} /> 生成图像</>}
             </button>
-            <p className="fine-print">请求 ID: <code>{requestId.slice(0, 8)}…</code> · 重试同一请求 ID 不会重复扣费。</p>
           </section>
 
           <aside className="ai-side">
@@ -314,13 +311,13 @@ export function AiPage() {
               {!activeJob ? (
                 <div className="result-placeholder">
                   <SparklesIcon size={32} />
-                  <p>生成结果会出现在这里。图片由服务端供应商返回，不使用静态示例。</p>
+                  <p>生成结果会出现在这里。</p>
                 </div>
               ) : activeJob.status === 'succeeded' && resultImage ? (
                 <div className="ai-image-result" data-testid="ai-result-image">
                   <img src={resultImage} alt={activeJob.prompt || 'AI 生成结果'} />
                   <div className="ai-result-meta">
-                    <span>{activeJob.model}</span>
+                    <span>AI 图片</span>
                     <strong>{formatMoney(activeJob.settledCents)}</strong>
                   </div>
                   {activeJob.result?.images?.[0]?.dataUrl ? (
@@ -342,34 +339,32 @@ export function AiPage() {
               ) : activeJob.status === 'pending_reconciliation' ? (
                 <div className="result-placeholder pending">
                   <AlertIcon size={30} />
-                  <strong>等待人工核对</strong>
-                  <p>{activeJob.errorMessage || '供应商响应不确定，额度保持预占，不会自动退款或重复扣费。'}</p>
+                  <strong>结果确认中</strong>
+                  <p>额度会暂时保留，确认后自动完成。</p>
                 </div>
               ) : activeJob.status === 'failed' ? (
                 <div className="result-placeholder failed">
                   <AlertIcon size={30} />
                   <strong>本次未产生费用</strong>
-                  <p>{activeJob.errorMessage || '供应商拒绝了请求，预占额度已释放。'}</p>
+                  <p>可以修改描述后重试。</p>
                 </div>
               ) : (
                 <div className="result-placeholder">
                   <AlertIcon size={30} />
-                  <strong>任务处理中</strong>
-                  <p>刷新页面或稍后查看历史记录。</p>
+                  <strong>生成中</strong>
+                  <p>刷新页面或稍后查看记录。</p>
                 </div>
               )}
             </div>
 
             <div className="panel">
-              <div className="panel-head"><h2>计费边界</h2></div>
+              <div className="panel-head"><h2>使用说明</h2></div>
               <ul className="check-list">
-                <li>价格与模型开关由管理员维护</li>
-                <li>先预占，成功后结算，明确失败才释放</li>
-                <li>超时或未知响应进入待核对</li>
-                <li>租户与个人月度预算同时生效</li>
-                <li>充值入口在商户资质就绪前保持关闭</li>
+                <li>生成会消耗额度</li>
+                <li>未成功不会扣费</li>
+                <li>可在下方查看生成记录</li>
               </ul>
-              <Link to="/account" className="text-link">查看账户与账本 →</Link>
+              <Link to="/account" className="text-link">查看额度记录 →</Link>
             </div>
           </aside>
         </div>
@@ -377,21 +372,21 @@ export function AiPage() {
 
       <section className="panel ai-history">
         <div className="panel-head">
-          <h2>任务历史</h2>
+          <h2>生成记录</h2>
           <button type="button" className="text-button" onClick={() => void loadData()}>刷新</button>
         </div>
         {jobs.length === 0 ? (
-          <p className="empty-text">还没有任务记录。</p>
+          <p className="empty-text">还没有生成记录。</p>
         ) : (
           <div className="table-wrap">
             <table className="data-table" data-testid="ai-history">
-              <thead><tr><th>时间</th><th>提示词</th><th>模型</th><th>状态</th><th>费用</th></tr></thead>
+              <thead><tr><th>时间</th><th>画面描述</th><th>类型</th><th>状态</th><th>消耗</th></tr></thead>
               <tbody>
                 {jobs.map((job) => (
                   <tr key={job.id}>
                     <td>{formatDate(job.createdAt)}</td>
                     <td className="truncate">{job.prompt || '—'}</td>
-                    <td>{job.model}</td>
+                    <td>AI 图片</td>
                     <td><span className={`status-pill ${job.status}`}>{jobStatusLabel(job.status)}</span></td>
                     <td>{formatMoney(job.settledCents || job.reservedCents)}</td>
                   </tr>

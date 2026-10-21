@@ -4,6 +4,7 @@ import { useAuth } from '../lib/auth';
 import { callPlatformApi } from '../lib/api';
 import type { AccountSummary } from '../lib/types';
 import { formatDate, formatMoney } from '../lib/format';
+import { ledgerKindLabel, orderStatusLabel, userError } from '../lib/userMessages';
 import { ArrowIcon, LockIcon, ShieldIcon, UserIcon } from '../components/Icons';
 
 export function AccountPage() {
@@ -28,7 +29,7 @@ export function AccountPage() {
         }
       })
       .catch((loadError: unknown) => {
-        if (!cancelled) setError(loadError instanceof Error ? loadError.message : '无法加载账户');
+        if (!cancelled) setError(userError(loadError, '无法加载账户'));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -47,7 +48,7 @@ export function AccountPage() {
       <div className="empty-page">
         <UserIcon size={42} />
         <h1>{configMissing ? '登录尚未配置' : '请先登录'}</h1>
-        <p>{configMissing ? '部署时配置 CloudBase 环境与 Publishable Key 后即可使用。' : '登录后查看租户、额度、用量与账本。'}</p>
+        <p>{configMissing ? '登录暂不可用，本地工具不受影响。' : '登录后查看空间、额度和使用记录。'}</p>
         {!configMissing ? <Link to="/login?next=/account" className="button button-accent">去登录</Link> : null}
         {error ? <p className="form-error">{error}</p> : null}
       </div>
@@ -85,13 +86,13 @@ export function AccountPage() {
         <div className="section-head compact">
           <div>
             <span className="eyebrow">MEMBERSHIPS</span>
-            <h2>我的租户</h2>
+            <h2>我的空间</h2>
           </div>
-          <p>{summary.memberships.length} 个可见空间</p>
+          <p>{summary.memberships.length} 个空间</p>
         </div>
         {summary.memberships.length === 0 ? (
           <div className="empty-state">
-            <p>你还没有加入任何租户。请联系平台管理员或租户所有者，用你的注册邮箱添加成员。</p>
+            <p>你还没有加入任何空间。请联系空间管理员邀请你。</p>
           </div>
         ) : (
           <div className="membership-grid">
@@ -127,13 +128,13 @@ export function AccountPage() {
           ) : (
             <div className="table-wrap">
               <table className="data-table">
-                <thead><tr><th>时间</th><th>租户</th><th>模型</th><th>数量</th><th>金额</th></tr></thead>
+                <thead><tr><th>时间</th><th>空间</th><th>类型</th><th>数量</th><th>金额</th></tr></thead>
                 <tbody>
                   {summary.usage.map((row) => (
                     <tr key={row.id}>
                       <td>{formatDate(row.createdAt)}</td>
                       <td>{row.tenantName}</td>
-                      <td>{row.model}</td>
+                      <td>AI 图片</td>
                       <td>{row.quantity}</td>
                       <td>{formatMoney(row.amountCents)}</td>
                     </tr>
@@ -149,21 +150,21 @@ export function AccountPage() {
             <LockIcon size={18} />
           </div>
           {summary.config.payments.enabled ? (
-            <p>支付渠道已配置。订单入口将在商户回调验收后启用。</p>
+            <p>充值功能准备中。</p>
           ) : (
             <div className="payment-closed">
               <strong>充值暂未开放</strong>
-              <p>支付商户资质与签名回调尚未配置。需要额度时，请联系平台管理员进行可审计的人工入账。</p>
+              <p>如需额度，请联系空间管理员。</p>
             </div>
           )}
           <div className="mini-ledger">
-            <h3>最近账本</h3>
+            <h3>额度记录</h3>
             {summary.ledger.length === 0 ? (
-              <p className="empty-text">暂无账本记录。</p>
+              <p className="empty-text">暂无额度记录。</p>
             ) : (
               summary.ledger.map((entry) => (
                 <div key={entry.id} className="ledger-row">
-                  <span>{entry.kind}</span>
+                  <span>{ledgerKindLabel(entry.kind)}</span>
                   <span>{entry.availableDeltaCents >= 0 ? '+' : ''}{formatMoney(entry.availableDeltaCents)}</span>
                   <small>{formatDate(entry.createdAt)}</small>
                 </div>
@@ -176,22 +177,22 @@ export function AccountPage() {
       <section className="account-section">
         <div className="panel">
           <div className="panel-head">
-            <h2>订单</h2>
-            <span className="muted">仅显示真实订单</span>
+            <h2>订单记录</h2>
+            <span className="muted">最近 20 条</span>
           </div>
           {summary.orders.length === 0 ? (
-            <p className="empty-text">暂无订单。当前支付入口关闭。</p>
+            <p className="empty-text">暂无订单。</p>
           ) : (
             <div className="table-wrap">
               <table className="data-table">
-                <thead><tr><th>创建时间</th><th>租户</th><th>金额</th><th>状态</th></tr></thead>
+                <thead><tr><th>创建时间</th><th>空间</th><th>金额</th><th>状态</th></tr></thead>
                 <tbody>
                   {summary.orders.map((order) => (
                     <tr key={order.id}>
                       <td>{formatDate(order.createdAt)}</td>
                       <td>{order.tenantName}</td>
                       <td>{formatMoney(order.amountCents)}</td>
-                      <td><span className={`status-pill ${order.status}`}>{order.status}</span></td>
+                      <td><span className={`status-pill ${order.status}`}>{orderStatusLabel(order.status)}</span></td>
                     </tr>
                   ))}
                 </tbody>

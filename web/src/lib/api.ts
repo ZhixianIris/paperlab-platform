@@ -30,7 +30,7 @@ let app: CloudBaseApp | null = null;
 
 function getApp(): CloudBaseApp {
   if (!runtime.cloudbaseConfigured) {
-    throw new ApiError('cloudbase_not_configured', 'CloudBase 尚未配置');
+    throw new ApiError('cloudbase_not_configured', '服务暂不可用');
   }
   if (!app) {
     app = cloudbase.init({

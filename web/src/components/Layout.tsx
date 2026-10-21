@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, Link } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
-import { runtime } from '../lib/api';
 import { FileIcon, ImageIcon, SparklesIcon, UserIcon, ShieldIcon } from './Icons';
 
 export function Layout() {
@@ -23,23 +22,23 @@ export function Layout() {
     <div className="site-shell">
       <header className="site-header">
         <div className="header-inner">
-          <Link to="/" className="brand" aria-label="PaperLab 首页">
+          <Link to="/pdf" className="brand" aria-label="PaperLab 工作台">
             <span className="brand-mark" aria-hidden="true">
               <span />
               <span />
             </span>
             <span className="brand-name">PaperLab</span>
-            <span className="brand-sub">纸研所</span>
+            <span className="brand-sub">WORKBENCH</span>
           </Link>
           <nav className="main-nav" aria-label="主导航">
-            <NavLink to="/pdf/merge" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+            <NavLink to="/pdf" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
               <FileIcon size={17} /> PDF
             </NavLink>
-            <NavLink to="/image/crop" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+            <NavLink to="/image" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
               <ImageIcon size={17} /> 图片
             </NavLink>
             <NavLink to="/ai" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-              <SparklesIcon size={17} /> AI 创作
+              <SparklesIcon size={17} /> AI
             </NavLink>
           </nav>
           <div className="header-actions">
@@ -71,8 +70,7 @@ export function Layout() {
       ) : null}
       {configMissing ? (
         <div className="config-banner" role="status">
-          <strong>云功能未配置。</strong> 本地 PDF / 图片工具仍可完全离线使用；AI、租户后台需在部署时配置
-          CloudBase 环境与 Publishable Key。
+          在线功能暂时不可用，本地 PDF / 图片工具不受影响。
         </div>
       ) : null}
 
@@ -83,13 +81,14 @@ export function Layout() {
       <footer className="site-footer">
         <div className="footer-inner">
           <div>
-            <div className="footer-brand">PaperLab / 纸研所</div>
-            <p>本地优先的文件工作台。文件默认不离开浏览器。</p>
+            <div className="footer-brand">PaperLab</div>
+            <p>本地处理，文件不离开浏览器。</p>
           </div>
           <div className="footer-meta">
-            <span><span className="live-dot" /> 本地处理引擎</span>
-            <span>{runtime.e2eMode ? 'E2E 测试环境' : 'CloudBase PG'}</span>
-            <span>v1.0.0</span>
+            <span>PDF</span>
+            <span>图片</span>
+            <span>AI</span>
+            <span>© 2026 PaperLab</span>
           </div>
         </div>
       </footer>

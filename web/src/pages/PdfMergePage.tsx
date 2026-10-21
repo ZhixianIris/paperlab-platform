@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FileDrop } from '../components/FileDrop';
 import { ResultCard } from '../components/ResultCard';
 import { ToolPageShell, ToolProcessButton } from '../components/ToolPageShell';
@@ -67,10 +67,9 @@ export function PdfMergePage() {
     setResult(null);
   }
 
-  const related = useMemo(() => PDF_TOOLS.filter((item) => item.key !== tool.key), []);
 
   return (
-    <ToolPageShell tool={tool} related={related}>
+    <ToolPageShell tool={tool}>
       <div className="workbench-section">
         <FileDrop
           accept="application/pdf,.pdf"

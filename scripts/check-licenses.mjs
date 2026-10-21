@@ -111,7 +111,8 @@ const countRows = [...counts.entries()]
 
 const direct = [
   ['React / React DOM', '18.3.1', 'MIT'],
-  ['React Router DOM', '6.30.1', 'MIT'],
+  ['React Router DOM', '6.30.6', 'MIT'],
+  ['@fontsource-variable/dm-sans', '5.3.0', 'OFL-1.1'],
   ['pdf-lib', '1.17.1', 'MIT'],
   ['pdfjs-dist', '5.4.149', 'Apache-2.0'],
   ['browser-image-compression', '2.0.2', 'MIT'],

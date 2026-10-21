@@ -135,8 +135,8 @@ export async function resetAndSeed(pool) {
     `insert into public.model_prices (
        id, provider, model, display_name, description, unit_price_cents,
        enabled, max_images, max_prompt_chars, monthly_budget_cents
-     ) values ($1,'fixture','paperlab-fixture-v1','Fixture Image (test only)',
-       'Deterministic test provider; not an external model.',500,true,1,4000,100000)`,
+     ) values ($1,'fixture','paperlab-fixture-v1','标准图像模型',
+       'AI 图像生成',500,true,1,4000,100000)`,
     [TEST_MODEL_ID]
   );
 }
