@@ -11,6 +11,7 @@ import {
   addPageNumbers, cropPdf, deletePdfPages, editPdfMetadata, flattenPdfForms,
   imagesToPdf, insertBlankPages, reorderPdfPages, stampPdf, watermarkPdf,
   insertPdfPages, splitPdfByPage, resizePdfPages, nupPdf,
+  inspectPdfForm, fillPdfForm, type PdfFormField,
 } from '../features/tools/pdf/operations-extended';
 import { exportPdfImages, extractPdfText, rasterPdf } from '../features/tools/pdf/render';
 
@@ -47,6 +48,8 @@ export function PdfUtilityPage() {
   const [quality, setQuality] = useState(.75);
   const [threshold, setThreshold] = useState(190);
   const [meta, setMeta] = useState({ title: '', author: '', subject: '', keywords: '', clear: false });
+  const [formFields, setFormFields] = useState<PdfFormField[]>([]);
+  const [formValues, setFormValues] = useState<Record<string, string | boolean>>({});
   const [results, setResults] = useState<File[]>([]);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState('');
@@ -61,6 +64,8 @@ export function PdfUtilityPage() {
     setAdditionalFiles([]);
     setResults([]);
     setInfo(null);
+    setFormFields([]);
+    setFormValues({});
     setError('');
     setRange('');
     setOrder('');
@@ -83,6 +88,19 @@ export function PdfUtilityPage() {
     });
     return () => { cancelled = true; };
   }, [file]);
+
+  useEffect(() => {
+    if (!file || key !== 'pdf.fill') { setFormFields([]); return; }
+    let cancelled = false;
+    inspectPdfForm(file).then((fields) => {
+      if (cancelled) return;
+      setFormFields(fields);
+      setFormValues(Object.fromEntries(fields.map((field) => [field.name, field.value])));
+    }).catch((reason: unknown) => {
+      if (!cancelled) setError(reason instanceof Error ? reason.message : '无法读取表单字段');
+    });
+    return () => { cancelled = true; };
+  }, [file, key]);
 
   async function process() {
     setProcessing(true);
@@ -148,6 +166,9 @@ export function PdfUtilityPage() {
         case 'pdf.stamp':
           if (!stampFiles[0]) throw new Error('请选择 PNG 或 JPEG 印章图片');
           output = await stampPdf(file, stampFiles[0], range, stampWidth, stampPosition);
+          break;
+        case 'pdf.fill':
+          output = await fillPdfForm(file, formValues);
           break;
         case 'pdf.flatten':
           output = await flattenPdfForms(file);
@@ -303,6 +324,40 @@ export function PdfUtilityPage() {
           </label>
         ) : null}
 
+        {key === 'pdf.fill' ? (
+          <>
+            {formFields.length === 0 ? (
+              <p className="fine-print">未检测到标准 AcroForm 字段，或正在读取表单。</p>
+            ) : formFields.map((field) => (
+              <label key={field.name} className="field">
+                <span>{field.name}</span>
+                {field.type === 'checkbox' ? (
+                  <input type="checkbox" data-testid={`form-field-${field.name}`}
+                    checked={Boolean(formValues[field.name])}
+                    onChange={(event) => setFormValues((current) => ({
+                      ...current, [field.name]: event.target.checked,
+                    }))} />
+                ) : field.type === 'choice' ? (
+                  <select data-testid={`form-field-${field.name}`}
+                    value={String(formValues[field.name] || '')}
+                    onChange={(event) => setFormValues((current) => ({
+                      ...current, [field.name]: event.target.value,
+                    }))}>
+                    <option value="">请选择</option>
+                    {field.options.map((option) => <option key={option} value={option}>{option}</option>)}
+                  </select>
+                ) : (
+                  <input type="text" disabled={field.type === 'unsupported'}
+                    data-testid={`form-field-${field.name}`}
+                    value={String(formValues[field.name] || '')}
+                    onChange={(event) => setFormValues((current) => ({
+                      ...current, [field.name]: event.target.value,
+                    }))} />
+                )}
+              </label>
+            ))}
+          </>
+        ) : null}
         {key === 'pdf.metadata' ? (
           <>
             {([
@@ -417,6 +472,12 @@ export function PdfUtilityPage() {
         <p className="pdf-warning" role="note">
           此操作先把 PDF 页面渲染成图像再重新封装，会丢失原生文字层、可搜索性、交互表单以及矢量清晰度。
           压缩后文件不一定更小；请保留原件，不用于需要可编辑文字的文件。
+        </p>
+      ) : null}
+      {key === 'pdf.fill' ? (
+        <p className="pdf-warning" role="note">
+          只支持标准 AcroForm 的文本、复选框、单选和下拉字段；不支持 XFA 表单。
+          默认表单字体可能不支持中文输入，此时请使用含合适嵌入字体的专用编辑器。
         </p>
       ) : null}
       {key === 'pdf.flatten' ? (
