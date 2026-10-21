@@ -1,4 +1,4 @@
-import { degrees, PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { degrees, PDFDocument, rgb, StandardFonts, PDFTextField, PDFCheckBox, PDFDropdown, PDFRadioGroup } from 'pdf-lib';
 import { baseName, loadPdf, parsePageRanges } from './operations';
 
 function asFile(bytes: Uint8Array, name: string): File {
@@ -293,4 +293,66 @@ export async function nupPdf(file: File, layout: 2 | 4): Promise<File> {
     }
   }
   return asFile(await output.save(), `${baseName(file.name)}-${layout}up.pdf`);
+}
+
+
+export interface PdfFormField {
+  name: string;
+  type: 'text' | 'checkbox' | 'choice' | 'unsupported';
+  value: string | boolean;
+  options: string[];
+}
+
+export async function inspectPdfForm(file: File): Promise<PdfFormField[]> {
+  const pdf = await loadPdf(file);
+  return pdf.getForm().getFields().map((field) => {
+    const name = field.getName();
+    if (field instanceof PDFTextField) {
+      return { name, type: 'text' as const, value: field.getText() || '', options: [] };
+    }
+    if (field instanceof PDFCheckBox) {
+      return { name, type: 'checkbox' as const, value: field.isChecked(), options: [] };
+    }
+    if (field instanceof PDFDropdown || field instanceof PDFRadioGroup) {
+      const selected = field.getSelected();
+      return {
+        name, type: 'choice' as const,
+        value: Array.isArray(selected) ? selected[0] || '' : selected || '',
+        options: field.getOptions(),
+      };
+    }
+    return { name, type: 'unsupported' as const, value: '', options: [] };
+  });
+}
+
+export async function fillPdfForm(file: File, values: Record<string, string | boolean>): Promise<File> {
+  const pdf = await loadPdf(file);
+  const fields = pdf.getForm().getFields();
+  if (!fields.length) throw new Error('没有检测到可填写的 AcroForm 字段');
+  let changes = 0;
+  for (const field of fields) {
+    const name = field.getName();
+    if (!Object.prototype.hasOwnProperty.call(values, name)) continue;
+    const value = values[name];
+    if (field instanceof PDFTextField && typeof value === 'string') {
+      field.setText(value.slice(0, 1000));
+      changes += 1;
+    } else if (field instanceof PDFCheckBox && typeof value === 'boolean') {
+      if (value) field.check(); else field.uncheck();
+      changes += 1;
+    } else if ((field instanceof PDFDropdown || field instanceof PDFRadioGroup) &&
+               typeof value === 'string' && value && field.getOptions().includes(value)) {
+      field.select(value);
+      changes += 1;
+    }
+  }
+  if (!changes) throw new Error('没有找到可填写或可修改的字段');
+  try {
+    return asFile(await pdf.save(), `${baseName(file.name)}-filled.pdf`);
+  } catch (error) {
+    if (/WinAnsi|encode|encoding|unicode/i.test(error instanceof Error ? error.message : '')) {
+      throw new Error('此表单默认字体无法显示某些字符（如中文）；需要支持该字符集的自定义嵌入字体');
+    }
+    throw error;
+  }
 }
