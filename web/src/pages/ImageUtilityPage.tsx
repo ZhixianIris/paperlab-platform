@@ -17,7 +17,7 @@ import {
 const DEFAULTS: ImageTransformOptions = {
   format: 'image/png', quality: 90, angle: 90, direction: 'horizontal',
   brightness: 100, contrast: 100, saturation: 100, grayscale: 0, sepia: 0,
-  blurRadius: 8, text: 'PaperLab', textSize: 32, opacity: 30,
+  blurRadius: 0, text: 'PaperLab', textSize: 32, opacity: 30,
   color: '#111111', background: '#ffffff', position: 'bottom-right',
   border: 24, cornerRadius: 30, tolerance: 28, mosaicSize: 16,
   region: { x: .2, y: .2, width: .5, height: .5 },
