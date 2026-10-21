@@ -90,6 +90,7 @@ export function toolLabel(key: string): string {
     'image.collage': '图片拼接',
     'image.batch': '批量图片处理',
     'ai.image.generate': 'AI 出图',
+    'ai.plan': 'AI 指令规划',
   };
   return labels[key] ?? key;
 }

@@ -14,6 +14,7 @@ const {
   findUserByEmail,
   getPublicTenantBySlug,
   ensureTenantDefaults,
+  assertToolEnabled,
   recordAudit,
   MONTH_START,
 } = require('./authz');
@@ -24,6 +25,8 @@ const {
   releaseJob,
 } = require('./billing');
 const { createProviderRegistry } = require('./providers/image');
+const { createPlannerRegistry } = require('./providers/text');
+const { planDocument } = require('./planning');
 const { createPaymentService } = require('./payments');
 const {
   listModels,
@@ -35,7 +38,7 @@ const {
 } = require('./jobs');
 const v = require('./validation');
 
-function createApp({ pool, config, providers = createProviderRegistry(config), payments = createPaymentService(config), logger = console }) {
+function createApp({ pool, config, providers = createProviderRegistry(config), planner = createPlannerRegistry(config), payments = createPaymentService(config), logger = console }) {
   async function queryOne(sql, params) {
     const { rows } = await pool.query(sql, params);
     return rows[0];
@@ -45,6 +48,7 @@ function createApp({ pool, config, providers = createProviderRegistry(config), p
     return {
       payments: payments.status(),
       ai: providers.publicStatus(),
+      planner: planner.publicStatus(),
       version: config.version,
       environment: config.appEnv,
     };
@@ -629,6 +633,7 @@ function createApp({ pool, config, providers = createProviderRegistry(config), p
           version: config.version,
           payments: payments.status(),
           ai: providers.publicStatus(),
+          planner: planner.publicStatus(),
         };
       }
       case 'public.config':
@@ -647,6 +652,19 @@ function createApp({ pool, config, providers = createProviderRegistry(config), p
         return tenantDashboard(uid, v.uuid(payload.tenantId, 'tenantId'));
       case 'models.list':
         return listModelsForUser(uid, v.uuid(payload.tenantId, 'tenantId'));
+      case 'ai.plan': {
+        const tenantId = v.uuid(payload.tenantId, 'tenantId');
+        await requireActiveTenant(pool, uid, tenantId);
+        await assertToolEnabled(pool, tenantId, 'ai.plan');
+        return planDocument({
+          pool,
+          config,
+          planner,
+          uid,
+          tenantId,
+          payload,
+        });
+      }
       case 'ai.generate': {
         const input = {
           tenantId: v.uuid(payload.tenantId, 'tenantId'),

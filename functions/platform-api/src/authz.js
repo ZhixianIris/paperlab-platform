@@ -46,6 +46,7 @@ const TOOL_KEYS = Object.freeze([
   'image.collage',
   'image.batch',
   'ai.image.generate',
+  'ai.plan',
 ]);
 
 const MONTH_START = `(date_trunc('month', now() at time zone 'Asia/Shanghai') at time zone 'Asia/Shanghai')`;

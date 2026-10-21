@@ -10,9 +10,14 @@ export interface AiStatus {
   configured: boolean;
 }
 
+export interface PlannerStatus {
+  configured: boolean;
+}
+
 export interface PublicConfig {
   payments: PaymentStatus;
   ai: AiStatus;
+  planner: PlannerStatus;
   version: string;
   environment: string;
 }

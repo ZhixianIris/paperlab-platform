@@ -19,6 +19,7 @@ const pool = testPool();
 const config = loadConfig({
   APP_ENV: 'test',
   AI_PROVIDER: 'fixture',
+  AI_TEXT_PROVIDER: 'fixture',
   DATABASE_URL: process.env.DATABASE_URL || 'postgres://postgres:postgres@127.0.0.1:5433/paperlab',
   AI_USER_RATE_PER_MINUTE: '20',
   AI_TENANT_RATE_PER_MINUTE: '60',

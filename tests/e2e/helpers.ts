@@ -13,6 +13,7 @@ export const PASSWORD = 'Passw0rd!';
 export const FIXTURES = {
   alphaPdf: path.resolve('tests/fixtures/sample-alpha.pdf'),
   betaPdf: path.resolve('tests/fixtures/sample-beta.pdf'),
+  fivePagePdf: path.resolve('tests/fixtures/sample-five.pdf'),
   image: path.resolve('tests/fixtures/sample-image.png'),
 };
 

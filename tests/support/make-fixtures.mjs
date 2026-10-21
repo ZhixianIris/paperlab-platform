@@ -56,6 +56,7 @@ export default async function globalSetup() {
   await fs.mkdir(fixtureDir, { recursive: true });
   await makePdf('sample-alpha.pdf', 'PAPERLAB ALPHA', 2);
   await makePdf('sample-beta.pdf', 'PAPERLAB BETA', 2);
+  await makePdf('sample-five.pdf', 'PAPERLAB FIVE', 5);
   await makeImage('sample-image.png');
 }
 

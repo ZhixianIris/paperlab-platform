@@ -48,7 +48,7 @@ check(config.hosting?.[0]?.verify === true, 'hosting verification must be enable
 check(config.hosting?.[0]?.safe === true, 'hosting safe rollback must be enabled');
 
 for (const [key, value] of Object.entries(fn.envVariables || {})) {
-  if (['PGPASSWORD', 'OPENAI_API_KEY', 'PAYMENT_API_V3_KEY'].includes(key)) {
+  if (['PGPASSWORD', 'OPENAI_API_KEY', 'AI_TEXT_API_KEY', 'PAYMENT_API_V3_KEY'].includes(key)) {
     check(
       value === '' || (value.startsWith('{{env.') && value.endsWith('}}')),
       `${key} must be injected or empty, never committed`,

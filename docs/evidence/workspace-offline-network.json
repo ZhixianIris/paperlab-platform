@@ -1,0 +1,5 @@
+{
+  "operation": "pdf.delete+pdf.rotate",
+  "offline": true,
+  "externalHttpRequests": []
+}

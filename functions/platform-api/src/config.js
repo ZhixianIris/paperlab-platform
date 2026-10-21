@@ -7,6 +7,12 @@ const DEFAULTS = Object.freeze({
   aiResultMaxBytes: 5_000_000,
   userRatePerMinute: 10,
   tenantRatePerMinute: 40,
+  textProvider: 'openai',
+  textModel: 'gpt-4o-mini',
+  plannerTimeoutMs: 30000,
+  plannerUserPerMinute: 3,
+  plannerUserPerDay: 30,
+  plannerTenantPerDay: 200,
   paymentsEnabled: false,
   paymentProvider: '',
 });
@@ -43,6 +49,28 @@ function loadConfig(env = process.env) {
       tenantRatePerMinute: asInt(env.AI_TENANT_RATE_PER_MINUTE, DEFAULTS.tenantRatePerMinute, {
         min: 1,
         max: 10000,
+      }),
+    },
+    planner: {
+      provider: (env.AI_TEXT_PROVIDER || DEFAULTS.textProvider).trim().toLowerCase(),
+      apiKey: env.AI_TEXT_API_KEY || '',
+      model: (env.AI_TEXT_MODEL || DEFAULTS.textModel).trim(),
+      baseUrl: (env.AI_TEXT_BASE_URL || env.OPENAI_BASE_URL || 'https://api.openai.com/v1').replace(/\/+$/, ''),
+      timeoutMs: asInt(env.AI_PLANNER_TIMEOUT_MS, DEFAULTS.plannerTimeoutMs, {
+        min: 1000,
+        max: 55000,
+      }),
+      userPerMinute: asInt(env.AI_PLAN_USER_PER_MINUTE, DEFAULTS.plannerUserPerMinute, {
+        min: 1,
+        max: 100,
+      }),
+      userPerDay: asInt(env.AI_PLAN_USER_PER_DAY, DEFAULTS.plannerUserPerDay, {
+        min: 1,
+        max: 10000,
+      }),
+      tenantPerDay: asInt(env.AI_PLAN_TENANT_PER_DAY, DEFAULTS.plannerTenantPerDay, {
+        min: 1,
+        max: 100000,
       }),
     },
     payments: {

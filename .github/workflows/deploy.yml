@@ -82,6 +82,10 @@ jobs:
       APP_ORIGIN: ${{ vars.APP_ORIGIN }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL || 'https://api.openai.com/v1' }}
+      AI_TEXT_PROVIDER: ${{ vars.AI_TEXT_PROVIDER || 'openai' }}
+      AI_TEXT_API_KEY: ${{ secrets.AI_TEXT_API_KEY }}
+      AI_TEXT_MODEL: ${{ vars.AI_TEXT_MODEL || 'gpt-4o-mini' }}
+      AI_TEXT_BASE_URL: ${{ vars.AI_TEXT_BASE_URL || 'https://api.openai.com/v1' }}
       CI: true
     steps:
       - name: Checkout

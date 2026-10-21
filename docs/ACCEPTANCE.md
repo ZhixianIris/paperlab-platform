@@ -1,37 +1,44 @@
 # Acceptance status
 
-Verified against the expanded local toolset at commit
-`ba464050c33c0c264d26b8516813f419b3524167`, with green GitHub CI verification
-([main run 39611499179](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39611499179)).
-CloudBase production deployment and other external items are not represented as passed.
+Wave A + B are implemented on `feat/ai-local-workspace` and verified locally against
+real PostgreSQL and Chromium. CloudBase production deployment, a real model key
+and other external items are not represented as passed. See
+[docs/WAVE_A_B.md](WAVE_A_B.md).
 
 ## Completion matrix
 
 | Area | Status | Evidence / boundary |
 | --- | --- | --- |
-| Three workbench pages + root redirect | **PASS** | `/` → `/pdf`; `/pdf`, `/image`, `/ai`; every workbench is a title + gradient function cards only |
+| Unified `/ai` workspace | **PASS** | Attachment/chat/plan/preview/undo/download; `/ai/image` is the generation tab, not a second business page |
+| Natural-language local execution | **PASS** | Chinese delete/rotate/merge/numbers/watermark/text/image compress/watermark/convert tested; ambiguity asks for clarification |
+| 41-tool adapter registry | **PASS** | 23 PDF + 18 image keys bound once to existing operations; interactive region/form/stamp tools are manual-only |
+| Local drafts + 2 checkpoints | **PASS** | OPFS files + IndexedDB metadata; save/reload/restore/clear E2E; in-memory undo only |
+| Three workbench pages + root redirect | **PASS** | `/` → `/pdf`; `/pdf` and `/image` are card workbenches; `/ai` is the conversational workspace |
 | MiniMax-inspired visual system | **PASS** | Bundled DM Sans (OFL), white canvas, black pill actions, gradient cards, responsive layouts |
-| Local PDF tools (23) | **PASS (tested subset)** | 13 Vitest PDF tests + Playwright structural/raster utilities; native text retained by structural operations; raster modes are explicitly lossy |
-| Local image tools (18) | **PASS (tested subset)** | Offline drag editors, color adjustments, rotate/flip, watermark, frame, masks, uniform background, collage and batch, with file-output and pixel checks |
+| Local PDF tools (23) | **PASS (tested subset)** | 19 Vitest tests total (PDF structural/raster + assistant registry/parser); native text retained by structural operations; raster modes are explicitly lossy |
+| Local image tools (18) | **PASS (tested subset)** | Offline drag editors, color adjustments, rotate/flip, watermark, frame, masks, uniform background, collage and batch, with file-output and pixel checks; workspace watermark+compression E2E |
 | No numeric image parameters | **PASS** | Crop/resize use pointer drag handles; no x/y/width/height/scale inputs in image editors |
 | User-facing copy encapsulation | **PASS** | User pages do not expose CloudBase, PostgreSQL/RLS, provider keys or internal billing mechanics |
-| No implicit upload / no analytics | **PASS** | Offline browser journeys; request listeners found no network calls during local operations |
+| No implicit upload / no analytics | **PASS** | E01 runs offline after load with zero HTTP requests; E06 inspects the planner request body and finds prompt+metadata only, no bytes/Base64/name |
 | CloudBase Auth integration (code) | **PASS (code)** | `@cloudbase/js-sdk` 3.10.3, real sign-in/sign-up/OTP/session calls; not run against a real environment |
 | CloudBase Auth verified in a real environment | **BLOCKED_EXTERNAL** | No environment id/publishable key/Auth setup |
-| PG schema, migrations, constraints, indexes | **PASS (CI PG 16)** | 6 forward-only migrations, including PDF/image tool allowlists and tenant default switches |
+| PG schema, migrations, constraints, indexes | **PASS (CI PG 16)** | 7 forward-only migrations, including tool allowlists, planner switch and `ai_plan_requests` RLS/quotas |
 | RLS + GRANT + recursive-policy avoidance | **PASS (local PG 16)** | Direct authenticated/anon sessions tested; no client writes; cross-tenant isolation |
 | RLS verified on actual CloudBase PG | **BLOCKED_EXTERNAL** | No CloudBase PG connection |
 | Multi-tenant admin/tenant features on real data | **PASS (local real Postgres)** | Two tenant journeys + admin create/members/tools/models/credits; no static/mock rows |
-| One event function with trusted UID | **PASS (code)** | Runtime `TCB_UUID` (same value as `auth.getUserInfo().uid`); body userId/role/price ignored; integration tests |
+| One event function with trusted UID | **PASS (code)** | Runtime `TCB_UUID`; body userId/role/price ignored; `ai.plan` is an action in the same function, not a second service |
 | CloudBase function invocation verified | **BLOCKED_EXTERNAL** | No deployed environment |
 | AI provider adapter contract | **PASS (local HTTP contract)** | OpenAI Images request/parse, 4xx definite, 5xx uncertain, timeout, unconfigured registry |
+| Text planner contract | **PASS (fixture contract only)** | Strict JSON allowlist, metadata-only payload, `system.exec`/invalid schema rejection, quota/idempotency tests; no real text key |
+| Real text planner call | **BLOCKED_EXTERNAL** | No `AI_TEXT_API_KEY`/model endpoint; fixture is a contract stub, not production-model acceptance |
+| Planner-safe browser execution | **PASS** | Server and browser both reject non-allowlisted actions; E05 forced malicious plan is rejected before execution |
 | Real AI image generation | **BLOCKED_EXTERNAL** | No provider API key; local E2E uses a deterministic fixture provider and generic user-facing label |
-| Reserve/settle/release/reconcile transaction billing | **PASS (local PG 16)** | 23 API tests: idempotency, concurrency, budgets, rate limits, failure states, ledger immutability |
+| Reserve/settle/release/reconcile transaction billing | **PASS (local PG 16)** | 30 API/RLS/planner tests; existing idempotency, concurrency, budgets, rate limits, failure states, ledger immutability |
 | Real provider billing / real money | **BLOCKED_EXTERNAL** | Depends on real AI/payment credentials |
 | Payment API + disabled boundary | **PASS (boundary) / BLOCKED (provider)** | `orders.create` returns `payments_disabled`; no fake order/payment; callback not implemented |
-| Declarative config v2.1 + CLI 3.8.4 | **PASS (static/official validate)** | `tcb validate` → `valid: true`; config/workflow guard checks 42/42 |
+| Declarative config v2.1 + CLI 3.8.4 | **PASS (static/official validate)** | `tcb validate` → `valid: true`; config/workflow guard checks 43/43 |
 | GitHub PR does not deploy | **PASS (actual)** | Temporary PR #1 run [39593194243](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39593194243) — only `Verify`, no deploy job |
-| Actual GitHub Actions run | **PASS** | Expanded-tool main run [39611499179](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39611499179) verification succeeded; 23 API + 13 unit + 35 Playwright journeys |
+| Actual GitHub Actions run | **PENDING MERGE** | This branch's PR CI is run after the change; the pre-change main run [39611499179](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39611499179) is historical |
 | Actual CloudBase deploy / public URL | **BLOCKED_EXTERNAL** | No credentials. Main workflow preflight skipped deploy after warnings; no URL can be honestly supplied |
 | SPA fallback `/admin`, `/t/*` | **PASS (local preview routing)**; **BLOCKED (CloudBase error-document setting)** | App uses BrowserRouter; deploy script sets hosting error document and smoke tests it |
 | License audit | **PASS** | 706 packages locally / 708 on Linux CI; 0 denied; AGPL/GPL/SSPL/BUSL fail closed; one reviewed dev-only CloudBase no-license package, not distributed |
@@ -43,24 +50,27 @@ CloudBase production deployment and other external items are not represented as 
 
 ```text
 npm run test:unit
-13 PDF tests passed
-(base merge/extract/rotate plus page edits, AcroForm handling, N-up, image conversion and metadata)
+19 tests passed
+(PDF structural/raster operations, 41-tool registry, local parser and plan validation)
 
 npm run test:api
-23 tests passed
+30 tests passed
 (OpenAI adapter contract, auth/tenant authz, real PostgreSQL billing, idempotency,
 concurrent retry, budgets, rate limits, provider definite/uncertain handling,
-admin reconciliation, RLS, immutable ledger/audit, payments disabled)
+admin reconciliation, RLS, immutable ledger/audit, payments disabled,
+planner allowlist/malicious output/quota/missing-provider tests)
 
 npx playwright test
-35 tests passed
+45 tests passed
 (AI billing, anonymous/member/admin tenancy, browser-local PDF edits and raster conversion,
 offline image transformations, pixel-level masks/frame color, batch and collage,
-Branded tool switch behavior, two-tenant isolation, original drag editor journeys)
+Branded tool switch behavior, two-tenant isolation, original drag editor journeys,
+workspace E01–E09 including planner payload privacy and malicious-plan rejection)
 
-Offline tests write `offline-pdf-merge.png`, `offline-image-crop.png` and
-`offline-network-log.json` into Playwright's artifact directory. Both logs
-record zero HTTP requests during the local operation.
+Offline tests write `offline-pdf-merge.png`, `offline-image-crop.png`,
+`workspace-offline-result.png` and `workspace-offline-network.json` into
+Playwright's artifact directory. The workspace log records zero HTTP requests
+during the delete+rotate operation.
 
 npm run audit:licenses
 706 locally, 708 on Linux CI, 0 denied
@@ -69,7 +79,7 @@ node tcb validate --json
 {"valid":true,"errors":[],"warnings":[]}
 
 npm run validate:deploy
-42/42 checks passed
+43/43 checks passed
 ```
 
 ### What the E2E environment is
@@ -105,9 +115,10 @@ See [docs/screenshots/](screenshots/). They are local E2E evidence taken from
 real running UI backed by PostgreSQL. AI screenshots use the deterministic local
 fixture with a generic label; no external model is claimed.
 
+- [ai-workspace.png](screenshots/ai-workspace.png)
+- [workspace-offline-result.png](screenshots/workspace-offline-result.png)
 - [pdf-workbench.png](screenshots/pdf-workbench.png)
 - [image-workbench.png](screenshots/image-workbench.png)
-- [ai-workbench.png](screenshots/ai-workbench.png)
 - [login.png](screenshots/login.png)
 - [account.png](screenshots/account.png)
 - [tenant-alpha.png](screenshots/tenant-alpha.png)
