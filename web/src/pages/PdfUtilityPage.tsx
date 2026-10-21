@@ -10,6 +10,7 @@ import { getPdfInfo, type PdfInfo } from '../features/tools/pdf/operations';
 import {
   addPageNumbers, cropPdf, deletePdfPages, editPdfMetadata, flattenPdfForms,
   imagesToPdf, insertBlankPages, reorderPdfPages, stampPdf, watermarkPdf,
+  insertPdfPages, splitPdfByPage, resizePdfPages, nupPdf,
 } from '../features/tools/pdf/operations-extended';
 import { exportPdfImages, extractPdfText, rasterPdf } from '../features/tools/pdf/render';
 
@@ -23,6 +24,11 @@ export function PdfUtilityPage() {
   const tool = PDF_TOOLS.find((item) => item.path === `/pdf/${utility}`);
   const [files, setFiles] = useState<File[]>([]);
   const [stampFiles, setStampFiles] = useState<File[]>([]);
+  const [additionalFiles, setAdditionalFiles] = useState<File[]>([]);
+  const [secondaryRange, setSecondaryRange] = useState('');
+  const [resizedPaper, setResizedPaper] = useState<'a4' | 'a3' | 'letter'>('a4');
+  const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('portrait');
+  const [nupLayout, setNupLayout] = useState<2 | 4>(2);
   const [info, setInfo] = useState<PdfInfo | null>(null);
   const [range, setRange] = useState('');
   const [order, setOrder] = useState('');
@@ -52,6 +58,7 @@ export function PdfUtilityPage() {
   useEffect(() => {
     setFiles([]);
     setStampFiles([]);
+    setAdditionalFiles([]);
     setResults([]);
     setInfo(null);
     setError('');
@@ -97,6 +104,19 @@ export function PdfUtilityPage() {
           break;
         case 'pdf.blanks':
           output = await insertBlankPages(file, afterPage, count);
+          break;
+        case 'pdf.insert':
+          if (!additionalFiles[0]) throw new Error('请选择要插入的 PDF 文件');
+          output = await insertPdfPages(file, additionalFiles[0], afterPage, secondaryRange);
+          break;
+        case 'pdf.split-pages':
+          output = await splitPdfByPage(file, range);
+          break;
+        case 'pdf.resize-pages':
+          output = await resizePdfPages(file, resizedPaper, orientation);
+          break;
+        case 'pdf.nup':
+          output = await nupPdf(file, nupLayout);
           break;
         case 'pdf.numbers':
           output = await addPageNumbers(file, { start, position, range });
@@ -146,7 +166,7 @@ export function PdfUtilityPage() {
   if (!tool) return <NotFoundPage />;
 
   const hasPageSelection = new Set([
-    'pdf.delete', 'pdf.numbers', 'pdf.watermark', 'pdf.crop',
+    'pdf.delete', 'pdf.numbers', 'pdf.watermark', 'pdf.crop', 'pdf.split-pages',
     'pdf.to-image', 'pdf.to-text', 'pdf.stamp',
   ]).has(key);
 
@@ -191,21 +211,54 @@ export function PdfUtilityPage() {
           </label>
         ) : null}
 
-        {key === 'pdf.blanks' ? (
+        {['pdf.blanks', 'pdf.insert'].includes(key) ? (
           <>
             <label className="field">
               <span>在第几页后插入（0 = 文档开头）</span>
               <input type="number" min={0} max={info?.pageCount || 9999} value={afterPage}
                 onChange={(event) => setAfterPage(Number(event.target.value))} data-testid="blank-after" />
             </label>
-            <label className="field">
+            {key === 'pdf.blanks' ? <label className="field">
               <span>添加空白页数量（1–20）</span>
               <input type="number" min={1} max={20} value={count}
                 onChange={(event) => setCount(Number(event.target.value))} data-testid="blank-count" />
-            </label>
+            </label> : null}
           </>
         ) : null}
 
+        {key === 'pdf.resize-pages' ? (
+          <>
+            <label className="field">
+              <span>目标纸张</span>
+              <select data-testid="resize-paper" value={resizedPaper}
+                onChange={(event) => setResizedPaper(event.target.value as 'a4' | 'a3' | 'letter')}>
+                <option value="a4">A4</option>
+                <option value="a3">A3</option>
+                <option value="letter">US Letter</option>
+              </select>
+            </label>
+            <label className="field">
+              <span>纸张方向</span>
+              <select value={orientation} onChange={(event) =>
+                setOrientation(event.target.value as 'portrait' | 'landscape')}>
+                <option value="portrait">纵向</option>
+                <option value="landscape">横向</option>
+              </select>
+              <small>等比缩放原有内容以适配新纸张，原生文字层保持不变。</small>
+            </label>
+          </>
+        ) : null}
+        {key === 'pdf.nup' ? (
+          <label className="field">
+            <span>拼版模式</span>
+            <select data-testid="nup-layout" value={nupLayout}
+              onChange={(event) => setNupLayout(Number(event.target.value) as 2 | 4)}>
+              <option value={2}>每张纸放 2 页（横向 A4）</option>
+              <option value={4}>每张纸放 4 页（纵向 A4）</option>
+            </select>
+            <small>将每页作为 PDF 矢量内容嵌入，不进行图片截图。</small>
+          </label>
+        ) : null}
         {key === 'pdf.numbers' ? (
           <>
             <label className="field">
@@ -342,6 +395,18 @@ export function PdfUtilityPage() {
         ) : null}
       </div>
 
+      {key === 'pdf.insert' ? (
+        <div className="workbench-section">
+          <FileDrop accept="application/pdf,.pdf" files={additionalFiles} onChange={setAdditionalFiles}
+            title="选择要插入的另一个 PDF" hint="选中的页将插入第一个文档指定位置。"
+            testId="pdf-insert-secondary" />
+          <label className="field">
+            <span>插入文件的页码（留空 = 全部）</span>
+            <input data-testid="insert-source-range" value={secondaryRange}
+              onChange={(event) => setSecondaryRange(event.target.value)} placeholder="例如 1,3-5" />
+          </label>
+        </div>
+      ) : null}
       {key === 'pdf.stamp' ? (
         <FileDrop accept="image/png,image/jpeg,.png,.jpg,.jpeg" files={stampFiles} onChange={setStampFiles}
           title="选择印章或手写签名 PNG/JPEG" hint="建议使用透明背景 PNG，图片不会上传。"
