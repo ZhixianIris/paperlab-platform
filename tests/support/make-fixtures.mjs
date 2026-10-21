@@ -9,6 +9,11 @@ const fixtureDir = path.resolve(here, '..', 'fixtures');
 
 async function makePdf(filename, title, pages) {
   const document = await PDFDocument.create();
+  const fixedDate = new Date('2026-01-01T00:00:00.000Z');
+  document.setCreationDate(fixedDate);
+  document.setModificationDate(fixedDate);
+  document.setProducer('PaperLab test fixtures');
+  document.setCreator('PaperLab test fixtures');
   const font = await document.embedFont(StandardFonts.Helvetica);
   for (let index = 1; index <= pages; index += 1) {
     const page = document.addPage([612, 792]);
