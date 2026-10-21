@@ -1,0 +1,90 @@
+name: Verify repository
+description: Install, migrate a real PostgreSQL database, test and build PaperLab
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Node 22
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: npm
+
+    - name: Install dependencies
+      shell: bash
+      run: npm ci
+
+    - name: Bootstrap local auth compatibility and run migrations
+      shell: bash
+      run: npm run db:setup
+
+    - name: Audit dependency licences
+      shell: bash
+      run: npm run audit:licenses
+
+    - name: Audit production dependency security
+      shell: bash
+      run: npm run audit:security
+
+    - name: Verify declarative deploy config and workflows
+      shell: bash
+      run: npm run validate:deploy
+
+    - name: Typecheck
+      shell: bash
+      run: npm run typecheck
+
+    - name: Lint
+      shell: bash
+      run: npm run lint
+
+    - name: Web unit tests
+      shell: bash
+      run: npm run test:unit
+
+    - name: API, billing and RLS integration tests
+      shell: bash
+      run: npm run test:api
+
+    - name: Production build
+      shell: bash
+      env:
+        VITE_CLOUDBASE_ENV_ID: ci-placeholder
+        VITE_CLOUDBASE_PUBLISHABLE_KEY: ci-placeholder
+      run: npm run build
+
+    - name: Verify no server secrets in browser bundle
+      shell: bash
+      run: npm run verify:build
+
+    - name: Cache Playwright browser
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+
+    - name: Install Chromium
+      shell: bash
+      run: npx playwright install --with-deps chromium
+
+    - name: Build E2E bundle
+      shell: bash
+      run: npm run build:e2e
+
+    - name: Browser E2E journeys
+      shell: bash
+      run: npx playwright test
+
+    - name: Upload verification evidence
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: verify-evidence
+        if-no-files-found: ignore
+        retention-days: 14
+        path: |
+          playwright-report/
+          test-results/
+          docs/license-audit.md
+          docs/dependency-licenses.json
+          THIRD_PARTY_NOTICES.md

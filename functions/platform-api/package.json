@@ -1,0 +1,16 @@
+{
+  "name": "paperlab-platform-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Single CloudBase Event function for PaperLab tenancy, AI jobs and billing",
+  "main": "index.js",
+  "engines": {
+    "node": ">=20.19 <23"
+  },
+  "dependencies": {
+    "pg": "8.16.3"
+  },
+  "scripts": {
+    "test": "node --test --test-concurrency=1 test/*.test.mjs"
+  }
+}

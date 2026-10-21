@@ -1,0 +1,33 @@
+{
+  "name": "paperlab-web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5173",
+    "build": "tsc --noEmit && vite build",
+    "build:e2e": "tsc --noEmit && vite build --mode e2e --outDir dist-e2e",
+    "preview": "vite preview --host 127.0.0.1 --port 4173",
+    "preview:e2e": "vite preview --outDir dist-e2e --host 127.0.0.1 --port 4173",
+    "typecheck": "tsc --noEmit --pretty false",
+    "lint": "eslint src --max-warnings=0",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@cloudbase/js-sdk": "3.10.3",
+    "browser-image-compression": "2.0.2",
+    "pdf-lib": "1.17.1",
+    "pdfjs-dist": "5.4.149",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-router-dom": "6.30.6"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "4.7.0",
+    "eslint": "8.57.1",
+    "@typescript-eslint/eslint-plugin": "6.21.0",
+    "@typescript-eslint/parser": "6.21.0",
+    "eslint-plugin-react-hooks": "4.6.2",
+    "vite": "5.4.21"
+  }
+}

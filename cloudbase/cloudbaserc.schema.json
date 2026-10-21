@@ -1,0 +1,1236 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://static.cloudbase.net/cli/cloudbaserc.schema.json",
+  "title": "CloudBase CLI 配置文件",
+  "description": "cloudbaserc.json 配置文件的 JSON Schema 定义，用于腾讯云 CloudBase CLI (tcb) 的项目配置。支持 cloudbaserc.json、cloudbaserc.js、cloudbaserc.yaml 等多种格式。",
+  "type": "object",
+  "required": [],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema 引用地址",
+      "examples": [
+        "https://static.cloudbase.net/cli/cloudbaserc.schema.json"
+      ]
+    },
+    "version": {
+      "type": "string",
+      "description": "配置文件版本。",
+      "enum": [
+        "2.1"
+      ],
+      "default": "2.1"
+    },
+    "envId": {
+      "type": "string",
+      "description": "云开发环境 ID，支持模板变量 {{env.ENV_ID}} 或 {{tcb.envId}}；个人版 TCR cloud 构建必须显式声明。",
+      "examples": [
+        "your-env-id",
+        "{{env.ENV_ID}}",
+        "{{tcb.envId}}"
+      ]
+    },
+    "region": {
+      "type": "string",
+      "description": "环境所在地域",
+      "enum": [
+        "ap-shanghai",
+        "ap-guangzhou"
+      ],
+      "default": "ap-shanghai"
+    },
+    "functionRoot": {
+      "type": "string",
+      "description": "云函数代码根目录（相对于项目根目录）",
+      "default": "./functions"
+    },
+    "functionDefaultConfig": {
+      "$ref": "#/definitions/CloudFunctionDefaultConfig",
+      "description": "云函数默认配置，会合并到每个函数配置中。函数自身的同名配置优先级更高。"
+    },
+    "functions": {
+      "type": "array",
+      "description": "云函数配置列表。v2.1 通过 type 区分 Event 函数和 HTTP 函数，并通过 buildStrategy 描述 HTTP 函数部署策略。",
+      "items": {
+        "$ref": "#/definitions/CloudFunction"
+      }
+    },
+    "hosting": {
+      "type": "array",
+      "description": "静态托管应用配置列表，支持 monorepo 中声明多个前端应用。",
+      "items": {
+        "$ref": "#/definitions/HostingConfig"
+      }
+    },
+    "integrations": {
+      "type": "array",
+      "description": "云开发集成实例配置（由 tcb integration create 消费，tcb config init integration 生成模板）",
+      "items": {
+        "type": "object",
+        "description": "集成实例配置项",
+        "properties": {
+          "keyId": {
+            "type": "string",
+            "description": "集成实例唯一标识（必填，用于匹配已有实例；只允许小写字母、数字和连字符，不能以连字符开头或结尾）"
+          },
+          "name": {
+            "type": "string",
+            "description": "实例名称（可选，仅用于显示）"
+          },
+          "authTypeCode": {
+            "type": "string",
+            "description": "集成类型授权 code（必填，需与云端模板一致，可用 tcb integration types 查询）"
+          },
+          "description": {
+            "type": "string",
+            "description": "实例描述（可选）"
+          },
+          "demoCodeFunctionName": {
+            "type": "string",
+            "description": "绑定的云函数名称（可选），用于接收集成回调；须先通过 tcb fn deploy 部署，或使用 tcb integration bind-resource 单独绑定"
+          },
+          "envVariables": {
+            "type": "object",
+            "description": "环境变量键值对（可选，password 字段明文写在配置文件中，创建时自动加密）",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["keyId", "authTypeCode"],
+        "additionalProperties": false
+      }
+    },
+    "database": {
+      "$ref": "#/definitions/DatabaseConfig",
+      "description": "数据库迁移配置。"
+    },
+    "gateway": {
+      "$ref": "#/definitions/GatewayConfig",
+      "description": "CloudBase 网关路由配置。"
+    },
+    "envOverrides": {
+      "type": "object",
+      "description": "多环境配置覆盖。key 为环境名，如 staging/production；value 为对根配置的局部覆盖。",
+      "additionalProperties": {
+        "$ref": "#/definitions/EnvironmentOverride"
+      }
+    },
+    "servers": {
+      "type": "array",
+      "description": "服务器配置列表。",
+      "items": {
+        "$ref": "#/definitions/ServerConfig"
+      }
+    },
+    "app": {
+      "$ref": "#/definitions/CloudAppConfig",
+      "description": "云应用配置。v2.1 声明式静态托管推荐使用 hosting[]。"
+    },
+    "ai": {
+      "type": "object",
+      "description": "AI 编码助手配置。",
+      "additionalProperties": true
+    },
+    "privateSettings": {
+      "type": "object",
+      "description": "私有化部署配置。",
+      "additionalProperties": true
+    },
+    "lowcodeCustomComponents": {
+      "type": "object",
+      "description": "微搭低代码自定义组件配置。",
+      "additionalProperties": true
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "functions"
+        ],
+        "properties": {
+          "functions": {
+            "contains": {
+              "type": "object",
+              "required": [
+                "buildStrategy",
+                "imageConfig"
+              ],
+              "properties": {
+                "buildStrategy": {
+                  "const": "cloud"
+                },
+                "imageConfig": {
+                  "type": "object",
+                  "required": [
+                    "imageType"
+                  ],
+                  "properties": {
+                    "imageType": {
+                      "const": "personal"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "envId"
+        ]
+      }
+    }
+  ],
+  "additionalProperties": true,
+  "definitions": {
+    "EnvValue": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        }
+      ]
+    },
+    "CloudFunctionDefaultConfig": {
+      "type": "object",
+      "description": "云函数默认配置",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "Event",
+            "HTTP"
+          ],
+          "default": "Event"
+        },
+        "runtime": {
+          "$ref": "#/definitions/FunctionRuntime"
+        },
+        "handler": {
+          "type": "string",
+          "default": "index.main"
+        },
+        "timeout": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 900,
+          "default": 15
+        },
+        "memorySize": {
+          "$ref": "#/definitions/FunctionMemorySize"
+        },
+        "envVariables": {
+          "$ref": "#/definitions/EnvVariables"
+        },
+        "vpc": {
+          "$ref": "#/definitions/FunctionVPC"
+        },
+        "installDependency": {
+          "type": "boolean",
+          "default": true
+        },
+        "ignore": {
+          "$ref": "#/definitions/IgnorePatterns"
+        },
+        "buildStrategy": {
+          "$ref": "#/definitions/FunctionBuildStrategy"
+        },
+        "public": {
+          "type": "boolean",
+          "default": false
+        },
+        "gatewayPath": {
+          "$ref": "#/definitions/PathPattern"
+        },
+        "imageConfig": {
+          "$ref": "#/definitions/FunctionImageConfig"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CloudFunction": {
+      "type": "object",
+      "description": "云函数配置。Event 函数使用 handler 入口；HTTP 函数使用 scf_bootstrap 或镜像方式启动。",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "函数名称",
+          "pattern": "^[a-zA-Z][a-zA-Z0-9_-]*$"
+        },
+        "description": {
+          "type": "string",
+          "description": "函数描述信息"
+        },
+        "type": {
+          "type": "string",
+          "description": "函数类型：Event（事件函数）或 HTTP（Web 云函数）",
+          "enum": [
+            "Event",
+            "HTTP"
+          ],
+          "default": "Event"
+        },
+        "runtime": {
+          "$ref": "#/definitions/FunctionRuntime"
+        },
+        "handler": {
+          "type": "string",
+          "description": "Event 函数入口方法。格式为 文件名.方法名；HTTP 函数 zip 部署时入口由 scf_bootstrap 控制。",
+          "default": "index.main",
+          "examples": [
+            "index.main",
+            "example.Hello::mainHandler",
+            "main"
+          ]
+        },
+        "entry": {
+          "type": "string",
+          "description": "HTTP 函数或自定义构建场景的应用入口文件，相对于函数目录。"
+        },
+        "timeout": {
+          "type": "integer",
+          "description": "函数执行超时时间（秒），范围 1-900",
+          "minimum": 1,
+          "maximum": 900,
+          "default": 15
+        },
+        "memorySize": {
+          "$ref": "#/definitions/FunctionMemorySize"
+        },
+        "dir": {
+          "type": "string",
+          "description": "函数代码目录路径（相对于项目根目录）。如不指定则默认为 functionRoot/name"
+        },
+        "envVariables": {
+          "$ref": "#/definitions/EnvVariables"
+        },
+        "vpc": {
+          "$ref": "#/definitions/FunctionVPC"
+        },
+        "installDependency": {
+          "type": "boolean",
+          "description": "是否在云端自动安装依赖（主要用于 Event 函数）",
+          "default": true
+        },
+        "isWaitInstall": {
+          "type": "boolean",
+          "description": "是否等待依赖安装完成后再返回"
+        },
+        "l5": {
+          "type": "boolean",
+          "description": "是否开启 L5（内部服务发现）"
+        },
+        "codeSecret": {
+          "type": "string",
+          "minLength": 1,
+          "description": "函数代码保护密钥。建议通过 {{env.FUNCTION_CODE_SECRET}} 引用环境变量，避免明文提交。"
+        },
+        "ignore": {
+          "$ref": "#/definitions/IgnorePatterns"
+        },
+        "params": {
+          "type": "object",
+          "description": "函数参数（键值对）",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "config": {
+          "$ref": "#/definitions/CloudFunctionDefaultConfig",
+          "description": "函数运行配置（嵌套形式，也可直接写在函数顶层）"
+        },
+        "triggers": {
+          "type": "array",
+          "description": "触发器列表，Event 函数常用。",
+          "items": {
+            "$ref": "#/definitions/CloudFunctionTrigger"
+          }
+        },
+        "protocolType": {
+          "type": "string",
+          "description": "HTTP 函数协议类型。HTTP 表示普通 HTTP；WS 表示 WebSocket。",
+          "enum": [
+            "HTTP",
+            "WS"
+          ],
+          "default": "HTTP"
+        },
+        "protocolParams": {
+          "$ref": "#/definitions/FunctionProtocolParams"
+        },
+        "instanceConcurrencyConfig": {
+          "$ref": "#/definitions/FunctionInstanceConcurrencyConfig"
+        },
+        "imageConfig": {
+          "$ref": "#/definitions/FunctionImageConfig",
+          "description": "镜像配置。runtime 为 CustomImage 或 buildStrategy 为 cloud/local/image 时使用。"
+        },
+        "buildStrategy": {
+          "$ref": "#/definitions/FunctionBuildStrategy",
+          "description": "HTTP 函数部署策略：zip、cloud、local、image。"
+        },
+        "public": {
+          "type": "boolean",
+          "description": "是否公开访问（匿名）。true 时部署流程会配置安全规则允许匿名访问。",
+          "default": false
+        },
+        "gatewayPath": {
+          "$ref": "#/definitions/PathPattern",
+          "description": "HTTP 函数网关访问路径，如 /api。"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "runtime"
+            ],
+            "properties": {
+              "runtime": {
+                "const": "CustomImage"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "buildStrategy",
+              "imageConfig"
+            ],
+            "properties": {
+              "buildStrategy": {
+                "enum": [
+                  "cloud",
+                  "local",
+                  "image"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "buildStrategy"
+            ],
+            "properties": {
+              "buildStrategy": {
+                "const": "image"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "imageConfig"
+            ],
+            "properties": {
+              "imageConfig": {
+                "required": [
+                  "imageUri"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "buildStrategy"
+            ],
+            "properties": {
+              "buildStrategy": {
+                "enum": [
+                  "cloud",
+                  "local"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "imageConfig"
+            ],
+            "properties": {
+              "imageConfig": {
+                "required": [
+                  "imageType"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "buildStrategy",
+              "imageConfig"
+            ],
+            "properties": {
+              "buildStrategy": {
+                "const": "image"
+              },
+              "imageConfig": {
+                "required": [
+                  "imageType"
+                ],
+                "properties": {
+                  "imageType": {
+                    "const": "enterprise"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "imageConfig": {
+                "required": [
+                  "registryId"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "buildStrategy",
+              "imageConfig"
+            ],
+            "properties": {
+              "buildStrategy": {
+                "enum": [
+                  "cloud",
+                  "local"
+                ]
+              },
+              "imageConfig": {
+                "required": [
+                  "imageType"
+                ],
+                "properties": {
+                  "imageType": {
+                    "const": "personal"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "imageConfig": {
+                "required": [
+                  "build"
+                ],
+                "properties": {
+                  "build": {
+                    "required": [
+                      "registryCredential"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "FunctionRuntime": {
+      "type": "string",
+      "description": "函数运行时环境",
+      "enum": [
+        "Nodejs24.11",
+        "Nodejs22.21",
+        "Nodejs20.19",
+        "Nodejs18.15",
+        "Nodejs16.13",
+        "Python3.11",
+        "Python3.10",
+        "Python3.9",
+        "Python3.7",
+        "Php8.0",
+        "Php7.4",
+        "Java11",
+        "Java8",
+        "Go1",
+        "CustomImage"
+      ],
+      "default": "Nodejs20.19"
+    },
+    "FunctionMemorySize": {
+      "description": "函数运行内存（MB）。可选 64MB，或 128-3072MB 且必须是 128 的倍数。",
+      "oneOf": [
+        {
+          "const": 64
+        },
+        {
+          "type": "integer",
+          "minimum": 128,
+          "maximum": 3072,
+          "multipleOf": 128
+        }
+      ],
+      "default": 256
+    },
+    "FunctionBuildStrategy": {
+      "type": "string",
+      "description": "HTTP 函数部署策略：zip=代码包部署，cloud=云端构建镜像，local=本地构建镜像，image=指定已有镜像。",
+      "enum": [
+        "zip",
+        "cloud",
+        "local",
+        "image"
+      ],
+      "default": "zip"
+    },
+    "EnvVariables": {
+      "type": "object",
+      "description": "环境变量，键值对形式，值支持 string/number/boolean，也可使用模板变量字符串。",
+      "additionalProperties": {
+        "$ref": "#/definitions/EnvValue"
+      }
+    },
+    "IgnorePatterns": {
+      "description": "部署时忽略的文件/目录 glob 模式。默认已排除 node_modules 和 .git，此处配置会追加到默认规则中。",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ],
+      "default": [
+        "node_modules",
+        "node_modules/**/*",
+        ".git",
+        ".git/**/*"
+      ]
+    },
+    "PathPattern": {
+      "type": "string",
+      "pattern": "^/.*",
+      "examples": [
+        "/",
+        "/api",
+        "/api/*",
+        "/*"
+      ]
+    },
+    "CloudFunctionTrigger": {
+      "type": "object",
+      "description": "云函数触发器配置",
+      "required": [
+        "name",
+        "type",
+        "config"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "触发器名称"
+        },
+        "type": {
+          "type": "string",
+          "description": "触发器类型",
+          "enum": [
+            "timer"
+          ],
+          "examples": [
+            "timer"
+          ]
+        },
+        "config": {
+          "type": "string",
+          "description": "触发器配置（cron 表达式）",
+          "examples": [
+            "0 0 2 1 * * *",
+            "0 */5 * * * * *"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "FunctionVPC": {
+      "type": "object",
+      "description": "VPC 网络配置",
+      "required": [
+        "vpcId",
+        "subnetId"
+      ],
+      "properties": {
+        "vpcId": {
+          "type": "string",
+          "description": "VPC ID，支持模板变量"
+        },
+        "subnetId": {
+          "type": "string",
+          "description": "子网 ID，支持模板变量"
+        }
+      },
+      "additionalProperties": false
+    },
+    "FunctionProtocolParams": {
+      "type": "object",
+      "description": "协议参数，仅 WebSocket 协议生效",
+      "properties": {
+        "wsParams": {
+          "type": "object",
+          "description": "WebSocket 参数",
+          "properties": {
+            "idleTimeOut": {
+              "type": "integer",
+              "description": "空闲超时时间（秒），范围 10-7200",
+              "minimum": 10,
+              "maximum": 7200,
+              "default": 15
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "FunctionInstanceConcurrencyConfig": {
+      "type": "object",
+      "description": "多并发配置，仅 HTTP 函数生效",
+      "properties": {
+        "dynamicEnabled": {
+          "type": "string",
+          "description": "是否开启智能动态并发。TRUE 表示开启，FALSE 表示静态并发。",
+          "enum": [
+            "TRUE",
+            "FALSE"
+          ]
+        },
+        "maxConcurrency": {
+          "type": "integer",
+          "description": "单实例并发数最大值，范围 1-100",
+          "minimum": 1,
+          "maximum": 100
+        }
+      },
+      "additionalProperties": false
+    },
+    "FunctionImageConfig": {
+      "type": "object",
+      "description": "HTTP 函数镜像配置。buildStrategy 为 local/cloud 时 imageType 必须显式声明为 personal 或 enterprise；image 策略仍可按 registryId 兼容推断。cloud/local 构建策略下 imageUri 由部署流程生成，image 策略下 imageUri 必填。",
+      "properties": {
+        "imageType": {
+          "type": "string",
+          "description": "镜像类型",
+          "enum": [
+            "enterprise",
+            "personal"
+          ]
+        },
+        "imageUri": {
+          "type": "string",
+          "description": "镜像地址。buildStrategy=image 时必须显式指定，建议带固定 tag，避免 latest。"
+        },
+        "registryId": {
+          "type": "string",
+          "description": "镜像仓库 ID（企业版镜像常用），支持模板变量"
+        },
+        "build": {
+          "type": "object",
+          "description": "本地/云端构建目标。buildStrategy=local（本地 Docker 构建）或 cloud（云端流水线构建）时使用。",
+          "properties": {
+            "cwd": {
+              "type": "string",
+              "description": "构建上下文目录，默认取函数目录，支持模板变量"
+            },
+            "dockerfile": {
+              "type": "string",
+              "description": "Dockerfile 相对构建上下文的路径，默认 Dockerfile"
+            },
+            "registryId": {
+              "type": "string",
+              "description": "兼容字段：企业版 TCR 实例 ID。新配置请统一使用 imageConfig.registryId；仅在 imageConfig.registryId 未配置时兜底。",
+              "deprecated": true
+            },
+            "namespace": {
+              "type": "string",
+              "description": "目标镜像命名空间。local/cloud 均可省略，缺省时由部署器使用 envId；显式配置时必须位于 imageConfig.build.namespace。",
+              "pattern": "^(?:[a-zA-Z0-9][a-zA-Z0-9._/-]*|\\{\\{env\\.[A-Za-z_][A-Za-z0-9_]*\\}\\})$"
+            },
+            "repository": {
+              "type": "string",
+              "description": "目标镜像仓库路径。local/cloud 均可省略，缺省时由部署器使用函数名；显式配置时必须位于 imageConfig.build.repository。"
+            },
+            "tag": {
+              "type": "string",
+              "description": "local 策略的目标镜像 tag；cloud 策略由平台生成，不接受自定义 tag。"
+            },
+            "platform": {
+              "type": "string",
+              "description": "目标平台，默认 linux/amd64"
+            },
+            "buildArgs": {
+              "type": "object",
+              "description": "构建参数，不得写入敏感值",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "registryCredential": {
+              "type": "object",
+              "description": "个人版 TCR 推送凭证。personal local/cloud 必须在 cloudbaserc 中显式声明，推荐通过 {{env.TCB_TCR_USERNAME}} / {{env.TCB_TCR_PASSWORD}} 引用 .env*；部署工具只使用凭证，不创建用户或重置密码。",
+              "required": [
+                "username",
+                "password"
+              ],
+              "properties": {
+                "username": {
+                  "type": "string",
+                  "description": "腾讯云账号 ID（UIN），推荐使用 {{env.TCB_TCR_USERNAME}}，避免明文。",
+                  "pattern": "^(?:[0-9]{5,20}|\\{\\{env\\.[A-Za-z_][A-Za-z0-9_]*\\}\\})$"
+                },
+                "password": {
+                  "type": "string",
+                  "description": "个人版 CCR 固定密码，推荐使用 {{env.TCB_TCR_PASSWORD}}，避免明文。",
+                  "minLength": 1,
+                  "maxLength": 16384
+                }
+              },
+              "additionalProperties": false
+            },
+            "forceBuild": {
+              "type": "boolean",
+              "description": "禁用 Docker 构建缓存。local/cloud 构建时映射为 docker build 的 --no-cache；不表示跳过镜像摘要复用或强制重新拉取基础镜像。"
+            }
+          },
+          "additionalProperties": false
+        },
+        "localFallback": {
+          "type": "string",
+          "description": "本地 Docker CLI、daemon 或 buildx 能力检查失败时的期望处理方式。error=直接报错；cloud=为后续自动切换云端构建预留，当前部署流程仍会报告检查失败，不会自动降级。默认 error。",
+          "enum": [
+            "cloud",
+            "error"
+          ],
+          "default": "error"
+        },
+        "entryPoint": {
+          "type": "string",
+          "description": "容器启动命令"
+        },
+        "command": {
+          "type": "string",
+          "description": "容器启动参数（已废弃，建议使用 argsList）",
+          "deprecated": true
+        },
+        "args": {
+          "type": "string",
+          "description": "启动参数（已废弃，建议使用 argsList）",
+          "deprecated": true
+        },
+        "containerImageAccelerate": {
+          "type": "boolean",
+          "description": "是否开启镜像加速"
+        },
+        "imagePort": {
+          "type": "integer",
+          "description": "镜像监听端口。HTTP 函数自定义镜像固定监听 9000。",
+          "default": 9000
+        },
+        "commandList": {
+          "type": "array",
+          "description": "启动命令列表",
+          "items": {
+            "type": "string"
+          }
+        },
+        "argsList": {
+          "type": "array",
+          "description": "启动参数列表",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "HostingConfig": {
+      "type": "object",
+      "description": "静态托管应用配置。支持本地构建（对齐 Netlify）：buildCommand 非空时自动执行 install + build 后上传产物；纯静态时直接上传。",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "应用名称，同一配置文件内应唯一。",
+          "pattern": "^[a-zA-Z][a-zA-Z0-9_-]*$"
+        },
+        "root": {
+          "type": "string",
+          "description": "项目根目录（相对于 cloudbaserc 所在目录），用于 monorepo。",
+          "default": "."
+        },
+        "framework": {
+          "type": "string",
+          "description": "前端框架类型。未配置时自动读取 root/package.json 检测；static/custom 表示纯静态（不构建）。显式指定已知框架时按映射推导默认构建命令（如 vite → vite build）。",
+          "enum": ["react", "vue", "vite", "vite-react", "vite-vue", "next", "nuxt", "angular", "static", "custom"],
+          "default": "static"
+        },
+        "installCommand": {
+          "type": "string",
+          "description": "安装命令，默认 npm install；空字符串表示跳过安装（纯静态项目不执行安装）。",
+          "default": "npm install",
+          "examples": [
+            "npm install",
+            "yarn install",
+            "pnpm install",
+            "bun install",
+            ""
+          ]
+        },
+        "buildCommand": {
+          "type": "string",
+          "description": "构建命令：非空则本地构建后上传产物；空字符串/未配置且无法检测框架时跳过构建，直接上传 outputDir（纯静态）。",
+          "examples": ["npm run build", "yarn build", "pnpm run build", ""]
+        },
+        "outputDir": {
+          "type": "string",
+          "description": "构建产物目录，相对于 root。有构建时默认 dist；纯静态（无构建）时默认 root（上传项目根目录）。",
+          "default": "dist",
+          "examples": [
+            "dist",
+            "build",
+            ".",
+            ".next",
+            ".output"
+          ]
+        },
+        "deployPath": {
+          "$ref": "#/definitions/PathPattern",
+          "description": "静态资源部署路径，多个 hosting 应使用不同路径。"
+        },
+        "envVariables": {
+          "$ref": "#/definitions/EnvVariables",
+          "description": "构建时环境变量（非敏感）。"
+        },
+        "ignore": {
+          "$ref": "#/definitions/IgnorePatterns"
+        },
+        "entryFile": {
+          "type": "array",
+          "description": "多页应用（MPA）入口文件列表，相对于项目根目录（root）。",
+          "items": {
+            "type": "string"
+          },
+          "default": ["index.html"],
+          "examples": [["index.html"], ["index.html", "about.html", "login.html"]]
+        },
+        "verify": {
+          "type": "boolean",
+          "description": "发布后校验产物可访问性，失败则报错。",
+          "default": false
+        },
+        "safe": {
+          "type": "boolean",
+          "description": "发布失败时自动回滚到上一版本。",
+          "default": false
+        },
+        "prune": {
+          "type": "boolean",
+          "description": "上传后删除远端部署路径下不在本次产物中的旧版本文件。",
+          "default": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "DatabaseConfig": {
+      "type": "object",
+      "description": "数据库迁移配置。暂不支持 seed；迁移历史追踪表由服务端固定为 cloudbase_migrations.schema_migrations。",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "数据库类型。",
+          "enum": [
+            "postgresql"
+          ]
+        },
+        "migrations": {
+          "type": "string",
+          "description": "迁移文件目录（仅支持相对路径）。迁移文件推荐使用 <14位时间戳>_<名称>.sql 命名。",
+          "default": "./cloudbase/migrations",
+          "pattern": "^(?!/).+"
+        }
+      },
+      "additionalProperties": false
+    },
+    "GatewayConfig": {
+      "type": "object",
+      "description": "CloudBase 网关配置",
+      "properties": {
+        "routes": {
+          "type": "array",
+          "description": "网关路由列表",
+          "items": {
+            "$ref": "#/definitions/GatewayRoute"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "GatewayRoute": {
+      "type": "object",
+      "description": "网关路由配置",
+      "required": [
+        "path",
+        "target"
+      ],
+      "properties": {
+        "domain": {
+          "type": "string",
+          "description": "绑定的域名，可选；不填则使用环境默认域名。"
+        },
+        "certId": {
+          "type": "string",
+          "description": "SSL 证书 ID（绑定自定义域名时需要；未配置且域名未绑定时自动按域名匹配已签发证书）。",
+          "examples": ["Zk6HXRQb"]
+        },
+        "accessType": {
+          "type": "string",
+          "enum": ["DIRECT", "CDN", "CUSTOM", "EO"],
+          "default": "DIRECT",
+          "description": "域名接入方式：DIRECT=直接接入（默认），CDN=接入云开发 CDN（即将下线），CUSTOM=自定义接入（需配置 customCname），EO=接入云开发 EdgeOne。"
+        },
+        "customCname": {
+          "type": "string",
+          "description": "自定义接入时配置的 CNAME 记录（accessType=CUSTOM 时必填）。"
+        },
+        "protocol": {
+          "type": "string",
+          "enum": ["HTTP", "HTTPS", "HTTP_AND_HTTPS", "HTTP_TO_HTTPS", "HTTPS_TO_HTTP"],
+          "default": "HTTP_AND_HTTPS",
+          "description": "域名协议：HTTP=仅 http，HTTPS=仅 https，HTTP_AND_HTTPS=同时开启（默认），HTTP_TO_HTTPS=http 重定向 https，HTTPS_TO_HTTP=https 重定向 http。"
+        },
+        "enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "域名启用状态（默认 true）。"
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^\\/(?!\\/)[a-zA-Z0-9_\\.\\-]{0,50}(\\/[a-zA-Z0-9_\\.\\-]{0,50})*\\/?$",
+          "description": "URL 路径，如 /api 或 /web。不支持通配符 *；每段仅允许字母/数字/./_/-，段内 0-50 字符。"
+        },
+        "target": {
+          "type": "string",
+          "description": "目标资源，格式为 function:<name> 或 hosting:<name>。",
+          "pattern": "^(function|hosting):[a-zA-Z][a-zA-Z0-9_-]*$",
+          "examples": [
+            "function:api-server",
+            "hosting:web"
+          ]
+        },
+        "pathRewrite": {
+          "type": "object",
+          "description": "路径重写配置。prefix 与 staticStorePrefix 只能填一个。hosting 路由未配置时自动生成 prefix=部署路径。",
+          "properties": {
+            "prefix": {
+              "type": "string",
+              "description": "路径前缀重写，如 /web-pay-0804。"
+            },
+            "staticStorePrefix": {
+              "type": "string",
+              "description": "静态托管路径前缀重写，存量兼容（与 prefix 只能填一个）。"
+            }
+          },
+          "additionalProperties": false
+        },
+        "enablePathTransmission": {
+          "type": "boolean",
+          "description": "路径透传：true=完整路径传到上游，false=只传匹配后路径。",
+          "default": false
+        },
+        "enableAuth": {
+          "type": "boolean",
+          "description": "是否开启身份认证。",
+          "default": false
+        },
+        "qpsPolicy": {
+          "type": "object",
+          "description": "QPS 限频策略。",
+          "properties": {
+            "qpsTotal": {
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 100000,
+              "description": "QPS 限额总量（每秒请求次数），100-100000。"
+            },
+            "qpsPerClient": {
+              "type": "object",
+              "description": "客户端维度限频。",
+              "properties": {
+                "limitBy": {
+                  "type": "string",
+                  "enum": [
+                    "UserID",
+                    "ClientIP"
+                  ],
+                  "description": "客户端标识：UserID（云开发用户 ID/微信 openid）或 ClientIP。无 UserID 信息的请求不限频。"
+                },
+                "limitValue": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 30,
+                  "description": "限制 QPS 值（每秒请求次数），0-30。"
+                }
+              },
+              "required": [
+                "limitBy",
+                "limitValue"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "EnvironmentOverride": {
+      "type": "object",
+      "description": "多环境局部覆盖配置。仅声明与根配置不同的字段。",
+      "properties": {
+        "envId": {
+          "type": "string"
+        },
+        "region": {
+          "type": "string"
+        },
+        "functionRoot": {
+          "type": "string"
+        },
+        "functionDefaultConfig": {
+          "$ref": "#/definitions/CloudFunctionDefaultConfig"
+        },
+        "functions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CloudFunction"
+          }
+        },
+        "hosting": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/HostingConfig"
+          }
+        },
+        "database": {
+          "$ref": "#/definitions/DatabaseConfig"
+        },
+        "gateway": {
+          "$ref": "#/definitions/GatewayConfig"
+        }
+      },
+      "additionalProperties": true
+    },
+    "ServerConfig": {
+      "type": "object",
+      "description": "服务器配置。",
+      "required": [
+        "type",
+        "name",
+        "path"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "服务器类型",
+          "enum": [
+            "node"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "description": "服务名称"
+        },
+        "path": {
+          "type": "string",
+          "description": "服务代码路径"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CloudAppConfig": {
+      "type": "object",
+      "description": "云应用配置。app 固定云端构建：上传源码 → 云端构建 → 写版本记录（与 tcb app deploy 一致）。本地构建/纯静态场景请使用 hosting[]。",
+      "required": [],
+      "properties": {
+        "root": {
+          "type": "string",
+          "description": "应用项目根目录（相对于 cloudbaserc.json 所在目录）",
+          "examples": [
+            ".",
+            "./packages/web",
+            "./apps/frontend"
+          ]
+        },
+        "serviceName": {
+          "type": "string",
+          "description": "应用服务名称（唯一标识）。app 部署以 serviceName 为唯一标识，与 tcb app deploy <serviceName> 保持一致"
+        },
+        "framework": {
+          "type": "string",
+          "description": "前端框架类型（用于云端构建命令推导/产物目录，声明用途）",
+          "enum": ["react", "vue", "vite", "vite-react", "vite-vue", "next", "nuxt", "angular", "static", "custom"],
+          "default": "static",
+          "examples": [
+            "react",
+            "vue",
+            "vite",
+            "next",
+            "nuxt",
+            "angular",
+            "static",
+            "custom"
+          ]
+        },
+        "installCommand": {
+          "type": "string",
+          "description": "安装命令",
+          "default": "npm install"
+        },
+        "buildCommand": {
+          "type": "string",
+          "description": "构建命令"
+        },
+        "outputDir": {
+          "type": "string",
+          "description": "构建产物目录"
+        },
+        "deployPath": {
+          "$ref": "#/definitions/PathPattern",
+          "description": "部署路径"
+        },
+        "envVariables": {
+          "$ref": "#/definitions/EnvVariables"
+        },
+        "ignore": {
+          "$ref": "#/definitions/IgnorePatterns"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

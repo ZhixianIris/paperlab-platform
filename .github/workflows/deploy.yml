@@ -1,0 +1,147 @@
+name: Deploy production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudbase-production-deploy
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify main
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
+
+  preflight:
+    name: Check deployment credentials
+    needs: verify
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    outputs:
+      configured: ${{ steps.check.outputs.configured }}
+    env:
+      TCB_SECRET_ID: ${{ secrets.TCB_SECRET_ID }}
+      TCB_SECRET_KEY: ${{ secrets.TCB_SECRET_KEY }}
+      TCB_ENV_ID: ${{ vars.TCB_ENV_ID }}
+      VITE_CLOUDBASE_PUBLISHABLE_KEY: ${{ vars.VITE_CLOUDBASE_PUBLISHABLE_KEY }}
+      PGHOST: ${{ secrets.PGHOST }}
+      PGUSER: ${{ secrets.PGUSER }}
+      PGPASSWORD: ${{ secrets.PGPASSWORD }}
+    steps:
+      - name: Check required CloudBase and PostgreSQL inputs
+        id: check
+        shell: bash
+        run: |
+          set -euo pipefail
+          missing=0
+          for name in TCB_SECRET_ID TCB_SECRET_KEY TCB_ENV_ID VITE_CLOUDBASE_PUBLISHABLE_KEY PGHOST PGUSER PGPASSWORD; do
+            if [ -z "${!name:-}" ]; then
+              echo "::warning::Deployment skipped: missing $name"
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "## Deployment skipped — external credentials missing" >> "$GITHUB_STEP_SUMMARY"
+            echo "Add the variables/secrets in RUNBOOK.md, then re-run this workflow." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo "configured=true" >> "$GITHUB_OUTPUT"
+          echo "Required deployment credentials are present (values not printed)."
+
+  deploy:
+    name: Deploy CloudBase
+    needs:
+      - verify
+      - preflight
+    if: needs.preflight.outputs.configured == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    environment:
+      name: production
+    env:
+      TCB_SECRET_ID: ${{ secrets.TCB_SECRET_ID }}
+      TCB_SECRET_KEY: ${{ secrets.TCB_SECRET_KEY }}
+      TCB_ENV_ID: ${{ vars.TCB_ENV_ID }}
+      TCB_REGION: ${{ vars.TCB_REGION || 'ap-shanghai' }}
+      VITE_CLOUDBASE_PUBLISHABLE_KEY: ${{ vars.VITE_CLOUDBASE_PUBLISHABLE_KEY }}
+      PGHOST: ${{ secrets.PGHOST }}
+      PGPORT: ${{ vars.PGPORT || '5432' }}
+      PGDATABASE: ${{ vars.PGDATABASE || 'postgres' }}
+      PGUSER: ${{ secrets.PGUSER }}
+      PGPASSWORD: ${{ secrets.PGPASSWORD }}
+      PGSSL: ${{ vars.PGSSL || 'true' }}
+      APP_ORIGIN: ${{ vars.APP_ORIGIN }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL || 'https://api.openai.com/v1' }}
+      CI: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Verify deploy configuration
+        run: npm run validate:deploy
+
+      - name: Pin official CloudBase CLI
+        run: npm install --global @cloudbase/cli@3.8.4
+
+      - name: Bind CLI session
+        shell: bash
+        run: tcb login --apiKeyId "$TCB_SECRET_ID" --apiKey "$TCB_SECRET_KEY"
+
+      - name: Validate CloudBase project
+        shell: bash
+        run: tcb validate
+
+      - name: Build hosting artifact
+        shell: bash
+        run: tcb app build
+
+      - name: Verify no server secrets in browser bundle
+        shell: bash
+        run: npm run verify:build
+
+      - name: Deployment plan (dry run)
+        shell: bash
+        run: tcb deploy --dry-run
+
+      - name: Deploy database, function and hosting
+        shell: bash
+        run: tcb deploy --yes
+
+      - name: Configure SPA error-document fallback
+        shell: bash
+        run: npm run deploy:configure
+
+      - name: Smoke test public routes and function
+        shell: bash
+        run: npm run deploy:smoke
+
+      - name: Publish deployment summary
+        if: success()
+        shell: bash
+        run: |
+          echo "## CloudBase deployment passed" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Environment: \`$TCB_ENV_ID\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Public URL: $PUBLIC_URL" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Database migrations: applied by \`tcb deploy\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Function: \`platform-api\` health and anonymous rejection verified" >> "$GITHUB_STEP_SUMMARY"
+          echo "- SPA fallback: \`/admin\` and \`/t/*\` refreshed successfully" >> "$GITHUB_STEP_SUMMARY"

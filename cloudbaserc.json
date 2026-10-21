@@ -1,0 +1,65 @@
+{
+  "$schema": "./cloudbase/cloudbaserc.schema.json",
+  "version": "2.1",
+  "envId": "{{env.TCB_ENV_ID}}",
+  "functionRoot": "./functions",
+  "database": {
+    "type": "postgresql",
+    "migrations": "./cloudbase/migrations"
+  },
+  "functions": [
+    {
+      "name": "platform-api",
+      "type": "Event",
+      "handler": "index.main",
+      "runtime": "Nodejs20.19",
+      "timeout": 60,
+      "memorySize": 512,
+      "installDependency": true,
+      "ignore": [
+        "node_modules",
+        "node_modules/**/*",
+        "test/**/*",
+        "coverage/**/*",
+        ".env*"
+      ],
+      "envVariables": {
+        "NODE_ENV": "production",
+        "APP_ENV": "production",
+        "PGHOST": "{{env.PGHOST}}",
+        "PGPORT": "{{env.PGPORT}}",
+        "PGDATABASE": "{{env.PGDATABASE}}",
+        "PGUSER": "{{env.PGUSER}}",
+        "PGPASSWORD": "{{env.PGPASSWORD}}",
+        "PGSSL": "{{env.PGSSL}}",
+        "AI_PROVIDER": "openai",
+        "OPENAI_API_KEY": "{{env.OPENAI_API_KEY}}",
+        "OPENAI_BASE_URL": "{{env.OPENAI_BASE_URL}}",
+        "AI_TIMEOUT_MS": "45000",
+        "AI_RESULT_MAX_BYTES": "5000000",
+        "PAYMENTS_ENABLED": "false",
+        "PAYMENT_PROVIDER": "",
+        "PAYMENT_MERCHANT_ID": "",
+        "PAYMENT_API_V3_KEY": ""
+      }
+    }
+  ],
+  "hosting": [
+    {
+      "name": "paperlab",
+      "root": "./web",
+      "framework": "vite",
+      "installCommand": "",
+      "buildCommand": "npm run build",
+      "outputDir": "dist",
+      "deployPath": "/",
+      "verify": true,
+      "safe": true,
+      "envVariables": {
+        "VITE_CLOUDBASE_ENV_ID": "{{env.TCB_ENV_ID}}",
+        "VITE_CLOUDBASE_REGION": "{{env.TCB_REGION}}",
+        "VITE_CLOUDBASE_PUBLISHABLE_KEY": "{{env.VITE_CLOUDBASE_PUBLISHABLE_KEY}}"
+      }
+    }
+  ]
+}

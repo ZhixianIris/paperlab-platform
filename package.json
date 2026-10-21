@@ -1,0 +1,53 @@
+{
+  "name": "paperlab-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PaperLab - local-first PDF/image tools with CloudBase PostgreSQL multi-tenant AI billing",
+  "engines": {
+    "node": ">=22 <23"
+  },
+  "workspaces": [
+    "web",
+    "functions/platform-api"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w web",
+    "build": "npm run build -w web",
+    "build:e2e": "npm run build:e2e -w web",
+    "verify:build": "node scripts/check-build-secrets.mjs",
+    "preview": "npm run preview -w web",
+    "typecheck": "npm run typecheck -w web",
+    "lint": "npm run lint -w web",
+    "test": "npm run test:unit && npm run test:api",
+    "test:unit": "npm run test -w web",
+    "test:api": "node --test --test-concurrency=1 functions/platform-api/test/*.test.mjs tests/integration/*.test.mjs",
+    "test:e2e": "npm run build:e2e && playwright test",
+    "db:bootstrap": "node scripts/db-migrate.mjs --bootstrap",
+    "db:migrate": "node scripts/db-migrate.mjs",
+    "db:setup": "node scripts/db-migrate.mjs --bootstrap",
+    "admin:grant": "node scripts/grant-admin.mjs",
+    "audit:licenses": "node scripts/check-licenses.mjs",
+    "audit:security": "npm audit --omit=dev --audit-level=high",
+    "validate:deploy": "node scripts/verify-deploy-config.mjs",
+    "deploy:configure": "node scripts/configure-hosting.mjs",
+    "deploy:smoke": "node scripts/smoke.mjs"
+  },
+  "devDependencies": {
+    "@cloudbase/manager-node": "5.9.1",
+    "@playwright/test": "1.55.0",
+    "@testing-library/jest-dom": "6.6.3",
+    "@testing-library/react": "14.3.1",
+    "@types/node": "22.18.6",
+    "@types/pngjs": "6.0.5",
+    "@types/react": "18.3.24",
+    "@types/react-dom": "18.3.7",
+    "ajv": "8.17.1",
+    "jsdom": "24.1.3",
+    "license-checker": "25.0.1",
+    "pg": "8.16.3",
+    "pngjs": "7.0.0",
+    "typescript": "5.6.3",
+    "vitest": "1.6.1",
+    "yaml": "2.8.1"
+  }
+}
