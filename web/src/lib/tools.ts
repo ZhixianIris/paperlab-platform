@@ -171,6 +171,42 @@ export const PDF_TOOLS: ToolMeta[] = [
     group: 'pdf',
     icon: 'file',
   },
+  {
+    key: 'pdf.insert',
+    path: '/pdf/insert',
+    title: '插入 PDF 页面',
+    short: '将另一份 PDF 插入指定位置',
+    description: '支持只插入来源 PDF 的指定页面，保留原始文字层。',
+    group: 'pdf',
+    icon: 'file',
+  },
+  {
+    key: 'pdf.split-pages',
+    path: '/pdf/split-pages',
+    title: 'PDF 逐页拆分',
+    short: '每页导出一个独立 PDF',
+    description: '选择页码范围，分别生成可下载的单页 PDF。',
+    group: 'pdf',
+    icon: 'scissors',
+  },
+  {
+    key: 'pdf.resize-pages',
+    path: '/pdf/resize-pages',
+    title: 'PDF 页面尺寸',
+    short: '转换为 A4、A3、Letter',
+    description: '对原生页面内容等比缩放并居中，不截图。',
+    group: 'pdf',
+    icon: 'resize',
+  },
+  {
+    key: 'pdf.nup',
+    path: '/pdf/nup',
+    title: 'PDF 拼版打印',
+    short: '2 合 1 或 4 合 1',
+    description: '将多个 PDF 页面排版到同一张 A4 纸上。',
+    group: 'pdf',
+    icon: 'file',
+  },
 ];
 
 export const IMAGE_TOOLS: ToolMeta[] = [
