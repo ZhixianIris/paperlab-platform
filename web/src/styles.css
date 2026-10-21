@@ -4171,3 +4171,44 @@ html { scroll-behavior: auto; }
 .pdf-warning { padding: 15px 17px; background: #fff7ec; border: 1px solid #f1ddbb; border-radius: 12px; font-size: 13px; line-height: 1.7; color: #75522d; }
 .pdf-check { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; }
 .pdf-check input { width: auto; min-height: 0; }
+
+
+/* Browser-local image utility preview and region guide. */
+.image-utility-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #f7f7f7;
+  overflow: hidden;
+}
+.image-utility-preview-inner {
+  display: inline-block;
+  position: relative;
+  max-width: 100%;
+  line-height: 0;
+  overflow: visible;
+}
+.image-utility-preview-inner img {
+  display: block;
+  max-width: 100%;
+  max-height: 400px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+.image-utility-region {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  border: 2px dashed #ffffff;
+  outline: 1px solid #181818;
+  background: rgba(18, 18, 18, .18);
+  box-sizing: border-box;
+}
+@media (max-width: 640px) {
+  .image-utility-preview-inner img { max-height: 270px; }
+}
