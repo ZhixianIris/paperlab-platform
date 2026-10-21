@@ -116,6 +116,7 @@ export async function resetAndSeed(pool) {
     'pdf.merge',
     'pdf.split',
     'pdf.rotate',
+    'pdf.fill',
     'pdf.insert',
     'pdf.split-pages',
     'pdf.resize-pages',
