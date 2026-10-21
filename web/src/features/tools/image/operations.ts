@@ -38,11 +38,11 @@ export function extensionFor(type: string): string {
   return 'png';
 }
 
-function baseName(filename: string): string {
+export function baseName(filename: string): string {
   return filename.replace(/\.[^.]+$/, '') || 'image';
 }
 
-async function decode(file: File): Promise<{ source: CanvasImageSource; width: number; height: number; close: () => void }> {
+export async function decode(file: File): Promise<{ source: CanvasImageSource; width: number; height: number; close: () => void }> {
   if (file.size > MAX_BYTES) throw new Error('图片不能超过 50 MB');
   if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
     throw new Error('仅支持 PNG、JPEG、WebP 图片');
@@ -100,7 +100,7 @@ export async function inspectImage(file: File): Promise<ImageInfo> {
   }
 }
 
-async function canvasToBlob(canvas: HTMLCanvasElement, type: OutputFormat, quality: number): Promise<Blob> {
+export async function canvasToBlob(canvas: HTMLCanvasElement, type: OutputFormat, quality: number): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => {
@@ -113,7 +113,7 @@ async function canvasToBlob(canvas: HTMLCanvasElement, type: OutputFormat, quali
   });
 }
 
-function prepareCanvas(width: number, height: number): { canvas: HTMLCanvasElement; context: CanvasRenderingContext2D } {
+export function prepareCanvas(width: number, height: number): { canvas: HTMLCanvasElement; context: CanvasRenderingContext2D } {
   if (width < 1 || height < 1) throw new Error('输出尺寸必须大于 0');
   if (width * height > MAX_PIXELS) throw new Error('输出像素过大，请减小尺寸');
   const canvas = document.createElement('canvas');
