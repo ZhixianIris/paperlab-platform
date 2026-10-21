@@ -324,7 +324,7 @@ export function ImageUtilityPage() {
           </label>
         ) : null}
 
-        {['frame', 'background', 'replace-background', 'collage', 'batch'].includes(key) ? (
+        {['background', 'replace-background', 'collage', 'batch'].includes(key) ? (
           <label className="field">
             <span>{key === 'background' ? '要抠除的背景色' : '背景填充颜色'}</span>
             <input type="color" value={options.background}
