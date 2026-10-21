@@ -1,7 +1,7 @@
 # PaperLab / 纸研所
 
 Local-first PDF and image tools plus a real multi-tenant CloudBase PostgreSQL AI
-workspace. User files never leave the browser for the seven local tools. AI
+workspace. User files never leave the browser for the browser-local PDF/image tools. AI
 jobs, balances, orders, tenants and admin actions live in CloudBase.
 
 > **Honest delivery status:** all offline code, PostgreSQL migrations, RLS,
@@ -27,8 +27,9 @@ jobs, balances, orders, tenants and admin actions live in CloudBase.
   Tool pages, `/login`, `/account`, `/t/:tenantSlug`, `/admin` share one site.
 - MiniMax-inspired white canvas, bundled DM Sans, black pill actions and gradient
   tool cards.
-- Local-only PDF merge, split, rotate (pdf-lib), image crop, resize, convert and
-  compress; PDF.js preview; no file upload, no file fingerprint, no analytics.
+- Browser-local PDF toolbox (23 operations): page structure/editing, form field handling, raster output, image conversion, and simple scan cleanup. Existing-text PDF operations use pdf-lib; PDF.js powers previews and raster rendering.
+- Browser-local image toolbox (18 operations): original crop/resize/convert/compress plus transforms, filters, watermark, borders, masking, flat-color background removal, collages and batch conversion.
+- No local-tool file upload, no file fingerprint, no analytics. Lossy PDF tools are clearly marked; crop/blur is not secure redaction.
 - Image crop/resize are direct-manipulation editors with draggable handles; no
   coordinate/size inputs. Crop works fully offline.
 - CloudBase Auth email/password + email OTP signup through `@cloudbase/js-sdk`.
@@ -162,6 +163,14 @@ OmniTools is fixed at commit
 [third_party/omni-tools/SOURCE.md](third_party/omni-tools/SOURCE.md) and
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). `npm run audit:licenses`
 fails closed on AGPL/GPL/SSPL/BUSL/unknown production licenses.
+
+## Tool expansion and its boundaries
+
+- PDF/image routes are driven by the corresponding single tool registries in `web/src/lib/tools.ts`.
+- Most PDF operations preserve the original text and vector structure, but raster PDF compression, grayscale and scan-background cleaning intentionally do **not**.
+- Image background cleaning is limited to flat-color chroma-key transparency, not AI segmentation. The blur/mosaic effects do not guarantee privacy; use solid masking for pixel deletion.
+- Conventional PDF password removal, secure redaction, OCR and cryptographic signing are not presented as complete. These require separate licensed/specialist backends or audited browser-WASM integrations.
+- The new tools require PR CI verification, including real browser-output and offline assertions; CloudBase deployment remains external-credential dependent.
 
 ## Not ready for public paid operation
 
