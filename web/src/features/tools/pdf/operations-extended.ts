@@ -266,10 +266,10 @@ export async function resizePdfPages(
 
 export async function nupPdf(file: File, layout: 2 | 4): Promise<File> {
   if (layout !== 2 && layout !== 4) throw new Error('仅支持 2 合 1 或 4 合 1');
-  await loadPdf(file);
+  const source = await loadPdf(file);
   const output = await PDFDocument.create();
-  // Each source page is embedded as a vector PDF XObject rather than an image.
-  const pages = await output.embedPdf(new Uint8Array(await file.arrayBuffer()));
+  // embedPdf defaults to page 1 only; pass all page indices explicitly.
+  const pages = await output.embedPdf(new Uint8Array(await file.arrayBuffer()), source.getPageIndices());
   const cols = 2;
   const rows = layout === 2 ? 1 : 2;
   const width = layout === 2 ? 841.89 : 595.28;
