@@ -62,6 +62,7 @@ export async function resetAndSeed(pool) {
       public.wallet_ledger,
       public.usage_records,
       public.ai_jobs,
+      public.ai_plan_requests,
       public.orders,
       public.wallets,
       public.tool_configs,
@@ -155,6 +156,7 @@ export async function resetAndSeed(pool) {
     'image.collage',
     'image.batch',
     'ai.image.generate',
+    'ai.plan',
   ];
   for (const tenant of Object.values(TENANTS)) {
     for (const key of tools) {

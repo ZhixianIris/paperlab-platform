@@ -47,8 +47,8 @@ export function App() {
             <Route path="image/convert" element={<ImageConvertPage />} />
             <Route path="image/compress" element={<ImageCompressPage />} />
             <Route path="image/:utility" element={<ImageUtilityPage />} />
-            <Route path="ai" element={<ToolWorkbenchPage kind="ai" />} />
-            <Route path="ai/image" element={<AiPage />} />
+            <Route path="ai" element={<AiPage />} />
+            <Route path="ai/image" element={<AiPage initialMode="image" />} />
             <Route path="login" element={<LoginPage />} />
             <Route path="account" element={<AccountPage />} />
             <Route path="t/:slug" element={<TenantPage />} />

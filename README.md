@@ -31,11 +31,21 @@ jobs, balances, orders, tenants and admin actions live in CloudBase.
 - Image toolbox: 18 local tools including rotate, mirror, tone/filter adjustment, watermark, borders,
   region mosaic/blur/solid mask, color-key transparency, collages and batch operations.
 - Browser-local operations run without file upload, file fingerprinting or analytics.
+- Deterministic local parsing handles common commands with no network; ambiguous
+  commands offer clarification or, for signed-in tenant members, `ai.plan`.
+- `ai.plan` sends only the prompt plus random file IDs and minimal metadata. It
+  never receives PDF/image bytes, Base64, names or document text.
+- Server-side planner quotas are stored in PostgreSQL; `ai.plan` has its own tenant
+  switch and strict allowlisted JSON output validated again in the browser.
+- OPFS + IndexedDB drafts are opt-in, scoped by user/tenant, restorable and
+  clearable. No cloud file/version library is created.
 - Image crop/resize are direct-manipulation editors with draggable handles; no
   coordinate/size inputs. Crop works fully offline.
 - CloudBase Auth email/password + email OTP signup through `@cloudbase/js-sdk`.
-- CloudBase PG schema with 12 tables, GRANT + RLS, security-definer membership
-  helpers avoiding recursive `memberships` policies, immutable ledger/audit log.
+- CloudBase PG schema with 13 tables (including `ai_plan_requests`), GRANT + RLS,
+  security-definer membership helpers and an immutable ledger/audit log.
+- Seven forward-only SQL migrations; planner calls are free in Wave B and never
+  touch the existing wallet ledger.
 - One `platform-api` Event function: trusted invocation identity, tenant authz,
   server pricing, reserve → provider → settle/release/hold, idempotency, rate
   limits, user/tenant/model budgets, admin reconciliation and manual credits.
@@ -46,8 +56,9 @@ jobs, balances, orders, tenants and admin actions live in CloudBase.
 - `cloudbaserc.json` v2.1, pinned CLI 3.8.4, PR CI with no deploy, main-only
   production deploy, database migrations before release, SPA fallback and public
   smoke tests after release.
-- 23 API/RLS/provider tests, 13 PDF unit tests and 35 Playwright journeys. The
-  browser tests cover actual PDF/image output, offline operation, branded
+- 30 API/RLS/planner tests, 19 unit tests and 45 Playwright journeys. The
+  browser tests cover actual PDF/image output, the natural-language workspace,
+  planner payload privacy, offline execution, OPFS draft restore, branded
   tenant tool availability, drag-handle editing and two-tenant isolation.
 - Branded tenant workbenches honor the admin tool-switch configuration when
   opened with `?tenant=<slug>`; public local tools remain freely accessible.
@@ -150,10 +161,11 @@ display name is generic in the UI and it is not a real provider result.
 | | |
 | --- | --- |
 | **PDF workbench** ![PDF workbench](docs/screenshots/pdf-workbench.png) | **Image workbench** ![Image workbench](docs/screenshots/image-workbench.png) |
-| **AI workbench** ![AI workbench](docs/screenshots/ai-workbench.png) | **Login** ![Login](docs/screenshots/login.png) |
+| **Natural-language workspace** ![AI workspace](docs/screenshots/ai-workspace.png) | **Login** ![Login](docs/screenshots/login.png) |
+| **Offline workspace result** ![Offline workspace](docs/screenshots/workspace-offline-result.png) | **AI studio** ![AI studio](docs/screenshots/ai-studio.png) |
 | **Drag-to-crop editor** ![Image crop](docs/screenshots/image-crop.png) | **Drag-to-resize editor** ![Image resize](docs/screenshots/image-resize.png) |
 | **PDF merge, never uploaded** ![PDF merge](docs/screenshots/pdf-merge.png) | **Offline PDF merge proof** ![Offline merge](docs/screenshots/offline-pdf-merge.png) |
-| **Tenant workspace with budgets** ![Tenant](docs/screenshots/tenant-alpha.png) | **AI studio** ![AI studio](docs/screenshots/ai-studio.png) |
+| **Tenant workspace with budgets** ![Tenant](docs/screenshots/tenant-alpha.png) | **Admin overview** ![Admin overview](docs/screenshots/admin-overview.png) |
 | **Admin tenant and member controls** ![Admin](docs/screenshots/admin-tenants.png) | **Admin model and price controls** ![Admin models](docs/screenshots/admin-models.png) |
 
 More evidence: [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md),

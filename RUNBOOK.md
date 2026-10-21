@@ -12,7 +12,8 @@ platform remains a restricted local/test build.
 | CloudBase Publishable Key | GitHub variable `VITE_CLOUDBASE_PUBLISHABLE_KEY` | yes |
 | Restricted CAM SecretId / SecretKey | GitHub secrets `TCB_SECRET_ID`, `TCB_SECRET_KEY` | yes |
 | PostgreSQL host/user/password/database | GitHub secrets `PGHOST`, `PGUSER`, `PGPASSWORD`; variables `PGDATABASE`, `PGPORT`, `PGSSL` | yes |
-| OpenAI image API key + allowed model | GitHub secret `OPENAI_API_KEY`; variable `OPENAI_BASE_URL` | optional; AI stays blocked without it |
+| OpenAI image API key + allowed model | GitHub secret `OPENAI_API_KEY`; variable `OPENAI_BASE_URL` | optional; image generation stays blocked without it |
+| Text planner key/model | GitHub secret `AI_TEXT_API_KEY`; variables `AI_TEXT_MODEL`, `AI_TEXT_BASE_URL`, `AI_TEXT_PROVIDER` | optional; complex instructions stay local-only/blocked without it |
 | Payment merchant credentials, signed callback, refunds | not wired; leave `PAYMENTS_ENABLED=false` | blocked |
 | Domain + ICP filing + generative-AI compliance | external | blocked for public paid operation |
 
@@ -50,11 +51,14 @@ arguments other than `VITE_CLOUDBASE_PUBLISHABLE_KEY`, or logs.
    | `PGDATABASE` | `postgres` |
    | `PGSSL` | `true` |
    | `OPENAI_BASE_URL` | `https://api.openai.com/v1` |
+   | `AI_TEXT_PROVIDER` | `openai` |
+   | `AI_TEXT_MODEL` | `gpt-4o-mini` |
+   | `AI_TEXT_BASE_URL` | `https://api.openai.com/v1` |
 
 3. Add repository **secrets**:
 
    `TCB_SECRET_ID`, `TCB_SECRET_KEY`, `PGHOST`, `PGUSER`, `PGPASSWORD`,
-   optionally `OPENAI_API_KEY`.
+   optionally `OPENAI_API_KEY` and `AI_TEXT_API_KEY`.
 
 4. Create a GitHub Environment named `production` (no required reviewer needed
    for automatic pushes). Add the same variables/secrets there instead of at
@@ -139,6 +143,10 @@ sign in again to refresh the session bootstrap.
 
 1. Add `OPENAI_API_KEY` in GitHub Secrets and deploy `main` again. The function
    runtime gets the key; the browser bundle does not.
+   For complex natural-language planning also add `AI_TEXT_API_KEY` (and
+   optionally `AI_TEXT_MODEL`/`AI_TEXT_BASE_URL`). Without it, the workspace
+   still executes deterministic local commands and shows a real unavailable state.
+   The planner receives prompt + random file metadata only; never file bytes.
 2. In `/admin` → models, keep the model provider as `openai` and enable it.
 3. In the tenant AI page, confirm the model shows a price and "可用", not
    "供应商密钥未配置".

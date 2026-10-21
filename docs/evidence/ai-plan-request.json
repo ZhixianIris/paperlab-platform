@@ -1,0 +1,20 @@
+{
+  "note": "Only prompt and file metadata; no file bytes",
+  "body": {
+    "action": "ai.plan",
+    "payload": {
+      "tenantId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "requestId": "fa599968-012f-43d9-a39f-e045cda71c99",
+      "prompt": "把第2页拿掉，再把余下页面顺时针转90度",
+      "files": [
+        {
+          "fileId": "file-813e357d-42f7-469e-9837-5472a9f27a81",
+          "kind": "pdf",
+          "sizeBytes": 2183,
+          "pageCount": 5,
+          "hasTextLayer": true
+        }
+      ]
+    }
+  }
+}

@@ -28,6 +28,15 @@ approved model name. The adapter is implemented and contract-tested; the UI
 shows “未配置” and refuses to create a charge when the key is absent. The local
 E2E fixture is a deterministic test provider, not a model.
 
+## 2b. Real text planner — `BLOCKED_EXTERNAL`
+
+Missing: `AI_TEXT_API_KEY` plus a compatible `AI_TEXT_MODEL` endpoint. The
+OpenAI-compatible adapter, strict JSON allowlist, metadata-only payload, quotas,
+idempotency and rejection tests are implemented. The local fixture verifies the
+contract only; it is **not** a real model acceptance result. Without a real key,
+the UI keeps deterministic local commands available and reports complex planning
+as unavailable.
+
 ## 3. Payments — `BLOCKED_EXTERNAL`
 
 Missing: WeChat Pay / Alipay merchant credentials, merchant certificate/API v3
@@ -69,6 +78,7 @@ tcb deploy --yes
 npm run deploy:configure
 npm run deploy:smoke
 
-# Real AI check requires OPENAI_API_KEY and an enabled model
+# Real image check requires OPENAI_API_KEY and an enabled model.
+# Real planner check requires AI_TEXT_API_KEY + AI_TEXT_MODEL.
 # Real payment check requires a merchant implementation and sandbox callback.
 ```
