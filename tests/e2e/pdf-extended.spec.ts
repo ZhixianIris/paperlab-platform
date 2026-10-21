@@ -88,10 +88,29 @@ test.describe('extended PDF tools run in the browser', () => {
     expect(Array.from(image.subarray(0, 8))).toEqual([137,80,78,71,13,10,26,10]);
   });
 
+  test('inserts another PDF and produces 2-up print sheets', async ({ page }, testInfo) => {
+    await page.goto('/pdf/insert');
+    await page.getByTestId('pdf-insert-drop-input').setInputFiles(FIXTURES.alphaPdf);
+    await page.getByTestId('pdf-insert-secondary-input').setInputFiles(FIXTURES.betaPdf);
+    await page.getByTestId('blank-after').fill('1');
+    await page.getByTestId('insert-source-range').fill('2');
+    await page.getByTestId('process-button').click();
+    await expect(page.getByTestId('result-card')).toBeVisible();
+    const inserted = await PDFDocument.load(await fs.readFile(await download(page, testInfo)));
+    expect(inserted.getPageCount()).toBe(3);
+
+    await page.goto('/pdf/nup');
+    await page.getByTestId('pdf-nup-drop-input').setInputFiles(FIXTURES.alphaPdf);
+    await page.getByTestId('process-button').click();
+    await expect(page.getByTestId('result-card')).toBeVisible();
+    const nup = await PDFDocument.load(await fs.readFile(await download(page, testInfo)));
+    expect(nup.getPageCount()).toBe(1);
+  });
+
   test('background cleanup is explicitly lossy and returns a renderable PDF', async ({ page }, testInfo) => {
     await page.goto('/pdf/background');
     await page.getByTestId('pdf-background-drop-input').setInputFiles(FIXTURES.betaPdf);
-    await expect(page.getByRole('note')).toContainText('失去原生文字层');
+    await expect(page.getByRole('note')).toContainText('丢失原生文字层');
     await page.getByTestId('process-button').click();
     await expect(page.getByTestId('result-card')).toBeVisible({ timeout: 40_000 });
     const output = await PDFDocument.load(await fs.readFile(await download(page, testInfo)));
