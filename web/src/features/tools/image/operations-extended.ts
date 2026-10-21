@@ -83,7 +83,7 @@ export async function transformImage(
     const outHeight = (rotated ? width : height) + 2 * pad;
     const { canvas, context: ctx } = prepareCanvas(outWidth, outHeight);
     if (options.format === 'image/jpeg' || operation === 'frame' || operation === 'replace-background') {
-      ctx.fillStyle = options.background;
+      ctx.fillStyle = operation === 'frame' ? options.color : options.background;
       ctx.fillRect(0, 0, outWidth, outHeight);
     }
 
