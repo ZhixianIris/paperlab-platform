@@ -1,9 +1,13 @@
 # Acceptance status
 
-Wave A + B are implemented on `feat/ai-local-workspace` and verified locally against
-real PostgreSQL and Chromium. CloudBase production deployment, a real model key
-and other external items are not represented as passed. See
-[docs/WAVE_A_B.md](WAVE_A_B.md).
+Wave A + B are merged to `main` at `51e1404f333e0831e5233612c9a0290a8a37b112`.
+PR [#6](https://github.com/ZhixianIris/paperlab-platform/pull/6) CI run
+[39630410165](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39630410165)
+is green; main verification run
+[39631026730](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39631026730)
+is green and the CloudBase deploy job was skipped for missing credentials.
+CloudBase production deployment, a real model key and other external items are
+not represented as passed. See [docs/WAVE_A_B.md](WAVE_A_B.md).
 
 ## Completion matrix
 
@@ -38,7 +42,7 @@ and other external items are not represented as passed. See
 | Payment API + disabled boundary | **PASS (boundary) / BLOCKED (provider)** | `orders.create` returns `payments_disabled`; no fake order/payment; callback not implemented |
 | Declarative config v2.1 + CLI 3.8.4 | **PASS (static/official validate)** | `tcb validate` → `valid: true`; config/workflow guard checks 43/43 |
 | GitHub PR does not deploy | **PASS (actual)** | Temporary PR #1 run [39593194243](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39593194243) — only `Verify`, no deploy job |
-| Actual GitHub Actions run | **PENDING MERGE** | This branch's PR CI is run after the change; the pre-change main run [39611499179](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39611499179) is historical |
+| Actual GitHub Actions run | **PASS** | PR #6 CI [39630410165](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39630410165) and main verification [39631026730](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39631026730) succeeded; 30 API + 19 unit + 45 Playwright; main deploy skipped (no credentials) |
 | Actual CloudBase deploy / public URL | **BLOCKED_EXTERNAL** | No credentials. Main workflow preflight skipped deploy after warnings; no URL can be honestly supplied |
 | SPA fallback `/admin`, `/t/*` | **PASS (local preview routing)**; **BLOCKED (CloudBase error-document setting)** | App uses BrowserRouter; deploy script sets hosting error document and smoke tests it |
 | License audit | **PASS** | 706 packages locally / 708 on Linux CI; 0 denied; AGPL/GPL/SSPL/BUSL fail closed; one reviewed dev-only CloudBase no-license package, not distributed |

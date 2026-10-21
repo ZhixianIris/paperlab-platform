@@ -1,13 +1,15 @@
 # PaperLab / 纸研所
 
-Local-first PDF and image tools plus a real multi-tenant CloudBase PostgreSQL AI
-workspace. User files never leave the browser for browser-local PDF and image tools. AI
-jobs, balances, orders, tenants and admin actions live in CloudBase.
+A natural-language, local-first PDF/image workspace with a real multi-tenant
+CloudBase PostgreSQL backend. Users drop a file, describe the change in Chinese,
+confirm a plan, execute in the browser, preview and download. AI planner quotas,
+balances, orders, tenants and admin actions live in CloudBase.
 
 > **Honest delivery status:** all offline code, PostgreSQL migrations, RLS,
 > transaction billing, provider adapter, admin/tenant UI, tests and declarative
 > deployment are implemented. GitHub Actions verification is green
-> ([run 39611499179](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39611499179));
+> ([PR CI run 39630410165](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39630410165),
+> [main verification run 39631026730](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39631026730));
 > the CloudBase **deploy job is skipped** because no environment or credentials
 > were supplied. Therefore there is no production URL and no real
 > CloudBase/AI/payment acceptance result. See
@@ -16,9 +18,11 @@ jobs, balances, orders, tenants and admin actions live in CloudBase.
 > [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md).
 
 - Repository: https://github.com/ZhixianIris/paperlab-platform
-- Verified feature commit: `ba464050c33c0c264d26b8516813f419b3524167`
-- PR guard run: https://github.com/ZhixianIris/paperlab-platform/actions/runs/39593194243
-  (only CI ran; no deploy job)
+- Verified feature commit on `main`: `51e1404f333e0831e5233612c9a0290a8a37b112`
+- PR: https://github.com/ZhixianIris/paperlab-platform/pull/6
+- PR CI: https://github.com/ZhixianIris/paperlab-platform/actions/runs/39630410165
+- Main verification: https://github.com/ZhixianIris/paperlab-platform/actions/runs/39631026730
+  (deploy skipped; no credentials)
 
 
 ## What is implemented

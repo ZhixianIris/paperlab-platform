@@ -4,13 +4,15 @@ Repository: https://github.com/ZhixianIris/paperlab-platform
 
 ## Main verification — PASS
 
-- Commit: `35eb82e65c3398c4a27d08939543900494148891`
+- Commit: `51e1404f333e0831e5233612c9a0290a8a37b112`
+- Pull request: https://github.com/ZhixianIris/paperlab-platform/pull/6
+- PR CI run: https://github.com/ZhixianIris/paperlab-platform/actions/runs/39630410165
 - Workflow: **Deploy production** (`.github/workflows/deploy.yml`)
-- Run: https://github.com/ZhixianIris/paperlab-platform/actions/runs/39600035784
+- Main run: https://github.com/ZhixianIris/paperlab-platform/actions/runs/39631026730
 - Result: `success`
 - Verify job: `success` (~2 min)
 - Verification included: `npm ci`, PostgreSQL 16 service, migrations,
-  23 API/RLS/provider tests, 3 PDF unit tests, 10 Playwright tests, production
+  30 API/RLS/planner tests, 19 unit tests, 45 Playwright tests, production
   build, browser-secret scan, licence audit (708 packages on Linux), high-severity npm audit,
   `actionlint`-style config checks.
 - Deploy credentials preflight: `success` (reported missing values as warnings).
@@ -19,8 +21,8 @@ Repository: https://github.com/ZhixianIris/paperlab-platform
 
 ## Pull request verification — PASS, no deployment
 
-- Temporary PR #1 (`verify/pr-no-deploy`) has been closed and its branch deleted.
-- Workflow run: https://github.com/ZhixianIris/paperlab-platform/actions/runs/39593194243
+- PR #6 (`feat/ai-local-workspace`) was merged after green CI; its branch was deleted.
+- Workflow run: https://github.com/ZhixianIris/paperlab-platform/actions/runs/39630410165
 - Trigger: `pull_request`
 - Result: `success`
 - Jobs: only `Verify`; there is no deploy job and no `tcb deploy` command in the

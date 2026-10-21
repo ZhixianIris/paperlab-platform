@@ -1,7 +1,7 @@
 # Wave A + B — Natural-language local file workspace
 
-Status: implemented on `feat/ai-local-workspace`, verified locally and in CI,
-then merged to `main`. Wave C (PDF semantic analysis, `ai.edit`, cloud image
+Status: merged to `main` at `51e1404f333e0831e5233612c9a0290a8a37b112`
+(PR #6, CI run 39630410165; main verification 39631026730). Wave C (PDF semantic analysis, `ai.edit`, cloud image
 versions) is deliberately not part of this change.
 
 ## Product behaviour
