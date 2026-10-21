@@ -5,7 +5,7 @@ import { PNG } from 'pngjs';
 import {
   parsePageOrder, deletePdfPages, reorderPdfPages, insertBlankPages,
   addPageNumbers, cropPdf, editPdfMetadata, imagesToPdf, flattenPdfForms,
-  stampPdf,
+  stampPdf, insertPdfPages, splitPdfByPage, resizePdfPages, nupPdf,
 } from './operations-extended';
 
 async function fixture(pages = 3): Promise<File> {
@@ -83,6 +83,26 @@ describe('local PDF utilities', () => {
     expect(document.getPage(0).getSize().width).toBeGreaterThan(0);
     const stamped = await stampPdf(await fixture(), png, '1-2', 20, 'bottom-right');
     expect((await PDFDocument.load(await stamped.arrayBuffer())).getPageCount()).toBe(3);
+  });
+
+  it('inserts pages from a second PDF and extracts individual files', async () => {
+    const source = await fixture(3);
+    const added = await insertPdfPages(source, await fixture(2), 1, '2');
+    expect((await PDFDocument.load(await added.arrayBuffer())).getPageCount()).toBe(4);
+    const pages = await splitPdfByPage(source, '1,3');
+    expect(pages).toHaveLength(2);
+    for (const item of pages) {
+      expect((await PDFDocument.load(await item.arrayBuffer())).getPageCount()).toBe(1);
+    }
+  });
+
+  it('resizes paper and puts several vector PDF pages onto one print sheet', async () => {
+    const resized = await resizePdfPages(await fixture(), 'a4', 'portrait');
+    const doc = await PDFDocument.load(await resized.arrayBuffer());
+    expect(doc.getPage(0).getWidth()).toBeCloseTo(595.28, 1);
+    expect(doc.getPage(0).getHeight()).toBeCloseTo(841.89, 1);
+    const imposed = await nupPdf(await fixture(3), 2);
+    expect((await PDFDocument.load(await imposed.arrayBuffer())).getPageCount()).toBe(2);
   });
 
   it('flattens AcroForm fields rather than silently claiming other annotations are supported', async () => {
