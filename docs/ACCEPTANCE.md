@@ -30,7 +30,7 @@ GitHub. External items are not represented as passed.
 | Actual GitHub Actions run | **PENDING PUSH / BLOCKED until repo creation** | Repo URL and run id to be added after the push |
 | Actual CloudBase deploy / public URL | **BLOCKED_EXTERNAL** | No credentials; no URL can be honestly supplied |
 | SPA fallback `/admin`, `/t/*` | **PASS (local preview routing)**; **BLOCKED (CloudBase error-document setting)** | App uses BrowserRouter; deploy script sets hosting error document and smoke tests it |
-| License audit | **PASS** | 705 packages audited; 0 denied; AGPL/GPL/SSPL/BUSL fail closed; one reviewed dev-only CloudBase no-license package, not distributed |
+| License audit | **PASS** | 705 packages audited locally / 707 on the Linux CI runner; 0 denied; AGPL/GPL/SSPL/BUSL fail closed; one reviewed dev-only CloudBase no-license package, not distributed |
 | Browser secret scan | **PASS** | `verify:build` finds no configured secret values/credential patterns |
 | Production dependency security | **PASS (high)** | `npm audit --omit=dev --audit-level=high` exits 0; remaining 2 moderate React Router v6 advisories are SSR/backslash classes, mitigated (no SSR; `next` redirect sanitized) |
 | Domain/ICP/AI compliance | **BLOCKED_EXTERNAL** | Not supplied |
@@ -54,8 +54,12 @@ npx playwright test
 isolation, admin CRUD journey, offline PDF merge with text-layer assertion,
 split/rotate, offline image crop, resize/convert/compress)
 
+Offline tests write `offline-pdf-merge.png`, `offline-image-crop.png` and
+`offline-network-log.json` into Playwright's artifact directory. Both logs
+record zero HTTP requests during the local operation.
+
 npm run audit:licenses
-705 packages, 0 denied
+705 locally and 707 on Linux CI, 0 denied
 
 node tcb validate --json
 {"valid":true,"errors":[],"warnings":[]}
@@ -102,6 +106,8 @@ fixture, not an external provider.
 - [tenant-alpha.png](screenshots/tenant-alpha.png)
 - [ai-studio.png](screenshots/ai-studio.png)
 - [pdf-merge.png](screenshots/pdf-merge.png)
+- [offline-pdf-merge.png](screenshots/offline-pdf-merge.png)
+- [offline-image-crop.png](screenshots/offline-image-crop.png)
 - [image-crop.png](screenshots/image-crop.png)
 - [admin-overview.png](screenshots/admin-overview.png)
 - [admin-tenants.png](screenshots/admin-tenants.png)

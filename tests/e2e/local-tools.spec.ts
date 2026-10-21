@@ -54,12 +54,18 @@ test.describe('local-only PDF and image tools', () => {
     requests.length = 0;
 
     await context.setOffline(true);
+    await expect(page.getByTestId('offline-banner')).toBeVisible();
     await page.getByTestId('pdf-merge-drop-input').setInputFiles([FIXTURES.alphaPdf, FIXTURES.betaPdf]);
     await expect(page.getByTestId('merge-order')).toContainText('sample-alpha.pdf');
     await page.getByTestId('move-up-1').click();
     await expect(page.locator('.reorder-row').first()).toContainText('sample-beta.pdf');
     await page.getByTestId('process-button').click();
     await expect(page.getByTestId('result-card')).toContainText('PDF 已合并', { timeout: 20_000 });
+    await page.screenshot({ path: testInfo.outputPath('offline-pdf-merge.png') });
+    await fs.writeFile(
+      testInfo.outputPath('offline-network-log.json'),
+      JSON.stringify({ offline: true, operation: 'pdf.merge', httpRequestsDuringOperation: requests }, null, 2),
+    );
 
     const file = await downloadedFile(page, testInfo);
     expect(requests).toEqual([]);
@@ -108,12 +114,18 @@ test.describe('local-only PDF and image tools', () => {
     await expect(page.getByText(/原始尺寸 800 × 600/)).toBeVisible();
 
     await context.setOffline(true);
+    await expect(page.getByTestId('offline-banner')).toBeVisible();
     await page.getByTestId('crop-x').fill('100');
     await page.getByTestId('crop-y').fill('50');
     await page.getByTestId('crop-width').fill('300');
     await page.getByTestId('crop-height').fill('200');
     await page.getByTestId('process-button').click();
     await expect(page.getByTestId('result-card')).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath('offline-image-crop.png') });
+    await fs.writeFile(
+      testInfo.outputPath('offline-image-network-log.json'),
+      JSON.stringify({ offline: true, operation: 'image.crop', externalHttpRequests: requests }, null, 2),
+    );
     const file = await downloadedFile(page, testInfo);
     expect(requests).toEqual([]);
     const png = PNG.sync.read(await fs.readFile(file));

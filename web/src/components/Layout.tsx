@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { NavLink, Outlet, Link } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { runtime } from '../lib/api';
@@ -5,6 +6,18 @@ import { FileIcon, ImageIcon, SparklesIcon, UserIcon, ShieldIcon } from './Icons
 
 export function Layout() {
   const { status, session, configMissing } = useAuth();
+  const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine));
+
+  useEffect(() => {
+    const goOnline = () => setOnline(true);
+    const goOffline = () => setOnline(false);
+    window.addEventListener('online', goOnline);
+    window.addEventListener('offline', goOffline);
+    return () => {
+      window.removeEventListener('online', goOnline);
+      window.removeEventListener('offline', goOffline);
+    };
+  }, []);
 
   return (
     <div className="site-shell">
@@ -51,6 +64,11 @@ export function Layout() {
         </div>
       </header>
 
+      {!online ? (
+        <div className="offline-banner" role="status" data-testid="offline-banner">
+          <span className="live-dot" /> 网络已断开 · 本地 PDF / 图片工具仍可处理并下载
+        </div>
+      ) : null}
       {configMissing ? (
         <div className="config-banner" role="status">
           <strong>云功能未配置。</strong> 本地 PDF / 图片工具仍可完全离线使用；AI、租户后台需在部署时配置

@@ -132,8 +132,9 @@ real AI provider result.
 | | |
 | --- | --- |
 | **Local-first landing** ![Landing](docs/screenshots/home.png) | **PDF merge, never uploaded** ![PDF merge](docs/screenshots/pdf-merge.png) |
-| **Image crop with local result** ![Image crop](docs/screenshots/image-crop.png) | **Tenant workspace with budgets** ![Tenant](docs/screenshots/tenant-alpha.png) |
-| **AI studio, server-priced** ![AI studio](docs/screenshots/ai-studio.png) | **Admin tenant and member controls** ![Admin](docs/screenshots/admin-tenants.png) |
+| **Offline PDF merge proof** ![Offline merge](docs/screenshots/offline-pdf-merge.png) | **Image crop with local result** ![Image crop](docs/screenshots/image-crop.png) |
+| **Tenant workspace with budgets** ![Tenant](docs/screenshots/tenant-alpha.png) | **AI studio, server-priced** ![AI studio](docs/screenshots/ai-studio.png) |
+| **Admin tenant and member controls** ![Admin](docs/screenshots/admin-tenants.png) | **Admin model and price controls** ![Admin models](docs/screenshots/admin-models.png) |
 
 More evidence: [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md),
 [docs/screenshots/](docs/screenshots/).
