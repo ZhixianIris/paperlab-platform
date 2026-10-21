@@ -1,8 +1,9 @@
 # Acceptance status
 
-Sampled after local verification and a green GitHub Actions run at commit
-`35eb82e65c3398c4a27d08939543900494148891`. External items are not represented
-as passed.
+Verified against the expanded local toolset at commit
+`ba464050c33c0c264d26b8516813f419b3524167`, with green GitHub CI verification
+([main run 39611499179](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39611499179)).
+CloudBase production deployment and other external items are not represented as passed.
 
 ## Completion matrix
 
@@ -10,14 +11,14 @@ as passed.
 | --- | --- | --- |
 | Three workbench pages + root redirect | **PASS** | `/` → `/pdf`; `/pdf`, `/image`, `/ai`; every workbench is a title + gradient function cards only |
 | MiniMax-inspired visual system | **PASS** | Bundled DM Sans (OFL), white canvas, black pill actions, gradient cards, responsive layouts |
-| Local PDF merge/split/rotate | **PASS** | 3 Vitest PDF tests + Playwright merge/split/rotate; offline merge preserves text layer |
-| Local image crop/resize/convert/compress | **PASS** | Offline drag-to-crop; drag-to-resize; visual format/compression presets; before/after slider |
+| Local PDF tools (23) | **PASS (tested subset)** | 13 Vitest PDF tests + Playwright structural/raster utilities; native text retained by structural operations; raster modes are explicitly lossy |
+| Local image tools (18) | **PASS (tested subset)** | Offline drag editors, color adjustments, rotate/flip, watermark, frame, masks, uniform background, collage and batch, with file-output and pixel checks |
 | No numeric image parameters | **PASS** | Crop/resize use pointer drag handles; no x/y/width/height/scale inputs in image editors |
 | User-facing copy encapsulation | **PASS** | User pages do not expose CloudBase, PostgreSQL/RLS, provider keys or internal billing mechanics |
 | No implicit upload / no analytics | **PASS** | Offline browser journeys; request listeners found no network calls during local operations |
 | CloudBase Auth integration (code) | **PASS (code)** | `@cloudbase/js-sdk` 3.10.3, real sign-in/sign-up/OTP/session calls; not run against a real environment |
 | CloudBase Auth verified in a real environment | **BLOCKED_EXTERNAL** | No environment id/publishable key/Auth setup |
-| PG schema, migrations, constraints, indexes | **PASS (local PG 16)** | 4 migrations applied cleanly to PostgreSQL 16 |
+| PG schema, migrations, constraints, indexes | **PASS (CI PG 16)** | 6 forward-only migrations, including PDF/image tool allowlists and tenant default switches |
 | RLS + GRANT + recursive-policy avoidance | **PASS (local PG 16)** | Direct authenticated/anon sessions tested; no client writes; cross-tenant isolation |
 | RLS verified on actual CloudBase PG | **BLOCKED_EXTERNAL** | No CloudBase PG connection |
 | Multi-tenant admin/tenant features on real data | **PASS (local real Postgres)** | Two tenant journeys + admin create/members/tools/models/credits; no static/mock rows |
@@ -30,7 +31,7 @@ as passed.
 | Payment API + disabled boundary | **PASS (boundary) / BLOCKED (provider)** | `orders.create` returns `payments_disabled`; no fake order/payment; callback not implemented |
 | Declarative config v2.1 + CLI 3.8.4 | **PASS (static/official validate)** | `tcb validate` → `valid: true`; config/workflow guard checks 42/42 |
 | GitHub PR does not deploy | **PASS (actual)** | Temporary PR #1 run [39593194243](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39593194243) — only `Verify`, no deploy job |
-| Actual GitHub Actions run | **PASS** | Main run [39600035784](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39600035784) success; 23 API + 3 unit + 10 Playwright, builds and scans green |
+| Actual GitHub Actions run | **PASS** | Expanded-tool main run [39611499179](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39611499179) verification succeeded; 23 API + 13 unit + 35 Playwright journeys |
 | Actual CloudBase deploy / public URL | **BLOCKED_EXTERNAL** | No credentials. Main workflow preflight skipped deploy after warnings; no URL can be honestly supplied |
 | SPA fallback `/admin`, `/t/*` | **PASS (local preview routing)**; **BLOCKED (CloudBase error-document setting)** | App uses BrowserRouter; deploy script sets hosting error document and smoke tests it |
 | License audit | **PASS** | 706 packages locally / 708 on Linux CI; 0 denied; AGPL/GPL/SSPL/BUSL fail closed; one reviewed dev-only CloudBase no-license package, not distributed |
@@ -42,8 +43,8 @@ as passed.
 
 ```text
 npm run test:unit
-3 PDF tests passed
-(parse/validation, merge + native text layer, extract + additive rotate)
+13 PDF tests passed
+(base merge/extract/rotate plus page edits, AcroForm handling, N-up, image conversion and metadata)
 
 npm run test:api
 23 tests passed
@@ -52,11 +53,10 @@ concurrent retry, budgets, rate limits, provider definite/uncertain handling,
 admin reconciliation, RLS, immutable ledger/audit, payments disabled)
 
 npx playwright test
-10 tests passed
-(AI success + charge delta, insufficient balance, anonymous gates, Alice/Bob
-isolation, admin CRUD journey, workbench routing/cards, offline PDF merge with
-text-layer assertion, split/rotate, offline drag-to-crop, drag-to-resize,
-visual conversion/compression and before/after drag)
+35 tests passed
+(AI billing, anonymous/member/admin tenancy, browser-local PDF edits and raster conversion,
+offline image transformations, pixel-level masks/frame color, batch and collage,
+Branded tool switch behavior, two-tenant isolation, original drag editor journeys)
 
 Offline tests write `offline-pdf-merge.png`, `offline-image-crop.png` and
 `offline-network-log.json` into Playwright's artifact directory. Both logs
@@ -123,7 +123,7 @@ fixture with a generic label; no external model is claimed.
 
 ## GitHub Actions evidence
 
-- Main verification: [run 39600035784](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39600035784) — success; deploy skipped by credential preflight.
+- Expanded main verification: [run 39611499179](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39611499179) — success; deploy skipped by credential preflight.
 - Pull request guard: [run 39593194243](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39593194243) — success; only the `Verify` job, no deploy job.
 - Details and the private-repo Actions billing note: [evidence/github-actions.md](evidence/github-actions.md).
 

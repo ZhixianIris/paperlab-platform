@@ -7,7 +7,7 @@ jobs, balances, orders, tenants and admin actions live in CloudBase.
 > **Honest delivery status:** all offline code, PostgreSQL migrations, RLS,
 > transaction billing, provider adapter, admin/tenant UI, tests and declarative
 > deployment are implemented. GitHub Actions verification is green
-> ([run 39600035784](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39600035784));
+> ([run 39611499179](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39611499179));
 > the CloudBase **deploy job is skipped** because no environment or credentials
 > were supplied. Therefore there is no production URL and no real
 > CloudBase/AI/payment acceptance result. See
@@ -16,7 +16,7 @@ jobs, balances, orders, tenants and admin actions live in CloudBase.
 > [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md).
 
 - Repository: https://github.com/ZhixianIris/paperlab-platform
-- Verified commit: `35eb82e65c3398c4a27d08939543900494148891`
+- Verified feature commit: `ba464050c33c0c264d26b8516813f419b3524167`
 - PR guard run: https://github.com/ZhixianIris/paperlab-platform/actions/runs/39593194243
   (only CI ran; no deploy job)
 
@@ -46,9 +46,11 @@ jobs, balances, orders, tenants and admin actions live in CloudBase.
 - `cloudbaserc.json` v2.1, pinned CLI 3.8.4, PR CI with no deploy, main-only
   production deploy, database migrations before release, SPA fallback and public
   smoke tests after release.
-- 23 API/RLS/provider tests, 3 PDF unit tests and 10 Playwright journeys. The
-  browser tests include offline PDF and image journeys, drag-handle editors,
-  workbench routing and two-tenant isolation.
+- 23 API/RLS/provider tests, 13 PDF unit tests and 35 Playwright journeys. The
+  browser tests cover actual PDF/image output, offline operation, branded
+  tenant tool availability, drag-handle editing and two-tenant isolation.
+- Branded tenant workbenches honor the admin tool-switch configuration when
+  opened with `?tenant=<slug>`; public local tools remain freely accessible.
 
 ## Local development
 
