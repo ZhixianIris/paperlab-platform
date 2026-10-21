@@ -107,6 +107,24 @@ test.describe('extended PDF tools run in the browser', () => {
     expect(nup.getPageCount()).toBe(1);
   });
 
+  test('loads and fills a real AcroForm without uploading files', async ({ page }, testInfo) => {
+    const doc = await PDFDocument.create();
+    const sheet = doc.addPage([400, 500]);
+    const field = doc.getForm().createTextField('fullName');
+    field.addToPage(sheet, { x: 20, y: 250, width: 200, height: 28 });
+    const fileBytes = Buffer.from(await doc.save());
+    await page.goto('/pdf/fill');
+    await page.getByTestId('pdf-fill-drop-input').setInputFiles({
+      name: 'native-form.pdf', mimeType: 'application/pdf', buffer: fileBytes,
+    });
+    await expect(page.getByTestId('form-field-fullName')).toBeVisible();
+    await page.getByTestId('form-field-fullName').fill('Alice');
+    await page.getByTestId('process-button').click();
+    await expect(page.getByTestId('result-card')).toBeVisible();
+    const result = await PDFDocument.load(await fs.readFile(await download(page, testInfo)));
+    expect(result.getForm().getTextField('fullName').getText()).toBe('Alice');
+  });
+
   test('background cleanup is explicitly lossy and returns a renderable PDF', async ({ page }, testInfo) => {
     await page.goto('/pdf/background');
     await page.getByTestId('pdf-background-drop-input').setInputFiles(FIXTURES.betaPdf);
