@@ -3,7 +3,7 @@
 PaperLab includes and depends on third-party open-source software. This file is
 generated from the installed npm tree by "npm run audit:licenses".
 
-- Generated: 2026-10-21T11:14:14.620Z
+- Generated: 2026-10-21T11:33:36.791Z
 - Packages audited: 705
 - Denied packages: 0
 - Full machine-readable inventory: [docs/dependency-licenses.json](docs/dependency-licenses.json)

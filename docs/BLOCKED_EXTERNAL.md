@@ -43,12 +43,19 @@ content/compliance review for the intended jurisdiction. Until these exist the
 service must not be marketed or operated as public paid SaaS. The default
 `*.tcloudbaseapp.com` hosting domain is not a production domain.
 
-## 5. GitHub repository / Actions — `BLOCKED until owner push`
+## 5. GitHub repository / Actions — available, with one visibility caveat
 
-The workspace was empty and no remote existed. The implementation is committed
-locally; after the owner creates/authorizes the target GitHub repository and
-pushes `main`, the included workflows run. Without that action there is no
-Actions run id or public link. No code is pushed to an unrelated repository.
+The repository now exists at
+https://github.com/ZhixianIris/paperlab-platform and the public CI run is green.
+The deploy job is skipped because of the CloudBase/PostgreSQL items above, not a
+code failure.
+
+The account's **private-repository** Actions minutes were blocked by a GitHub
+billing/spending-limit state on the first run, so the repository was made public
+to execute the included free public-repo workflows. If the project must be
+private, add a valid GitHub billing method, switch visibility back to private,
+and re-run; the workflows themselves are visibility-agnostic. See
+[docs/evidence/github-actions.md](evidence/github-actions.md).
 
 ## Reproduce the blocked checks once values exist
 

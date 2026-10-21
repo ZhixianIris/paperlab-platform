@@ -1,0 +1,2 @@
+CloudBase CLI 3.8.4
+试试 tcb ai 命令，开启 AI 原生开发

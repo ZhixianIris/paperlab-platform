@@ -1,0 +1,10 @@
+
+> paperlab-platform@1.0.0 audit:licenses
+> node scripts/check-licenses.mjs
+
+ALLOWED  @cloudbase/signature-nodejs@1.1.0 — reviewed CloudBase tooling dependency without package.json licence; dev-only, not distributed
+ALLOWED  caniuse-lite@1.0.30001817 — permissive with attribution/source notice
+ALLOWED  json-schema@0.4.0 — permissive with attribution/source notice
+ALLOWED  spdx-exceptions@2.5.0 — permissive with attribution/source notice
+ALLOWED  spdx-ranges@2.1.1 — permissive with attribution/source notice
+PASS  705 dependency licences audited; no denied licences

@@ -1,0 +1,11 @@
+{
+  "valid": true,
+  "errors": [],
+  "warnings": [],
+  "summary": {
+    "functions": 1,
+    "hosting": 1,
+    "databases": 1,
+    "gateways": 0
+  }
+}

@@ -1,7 +1,8 @@
 # Acceptance status
 
-Sampled at the local verification stage, before pushing the repository to
-GitHub. External items are not represented as passed.
+Sampled after local verification and a green GitHub Actions run at commit
+`24a53b4134bb3ecf15248512d1b3384a4585a0f3`. External items are not represented
+as passed.
 
 ## Completion matrix
 
@@ -26,9 +27,9 @@ GitHub. External items are not represented as passed.
 | Real provider billing / real money | **BLOCKED_EXTERNAL** | Depends on real AI/payment credentials |
 | Payment API + disabled boundary | **PASS (boundary) / BLOCKED (provider)** | `orders.create` returns `payments_disabled`; no fake order/payment; callback not implemented |
 | Declarative config v2.1 + CLI 3.8.4 | **PASS (static/official validate)** | `tcb validate` → `valid: true`; config/workflow guard checks 42/42 |
-| GitHub PR does not deploy | **PASS (workflow design)** | `ci.yml` has no deploy command; deploy only in main workflow |
-| Actual GitHub Actions run | **PENDING PUSH / BLOCKED until repo creation** | Repo URL and run id to be added after the push |
-| Actual CloudBase deploy / public URL | **BLOCKED_EXTERNAL** | No credentials; no URL can be honestly supplied |
+| GitHub PR does not deploy | **PASS (actual)** | Temporary PR #1 run [39593194243](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39593194243) — only `Verify`, no deploy job |
+| Actual GitHub Actions run | **PASS** | Main run [39592804574](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39592804574) success; 23 API + 3 unit + 9 Playwright, builds and scans green |
+| Actual CloudBase deploy / public URL | **BLOCKED_EXTERNAL** | No credentials. Main workflow preflight skipped deploy after warnings; no URL can be honestly supplied |
 | SPA fallback `/admin`, `/t/*` | **PASS (local preview routing)**; **BLOCKED (CloudBase error-document setting)** | App uses BrowserRouter; deploy script sets hosting error document and smoke tests it |
 | License audit | **PASS** | 705 packages audited locally / 707 on the Linux CI runner; 0 denied; AGPL/GPL/SSPL/BUSL fail closed; one reviewed dev-only CloudBase no-license package, not distributed |
 | Browser secret scan | **PASS** | `verify:build` finds no configured secret values/credential patterns |
@@ -113,11 +114,18 @@ fixture, not an external provider.
 - [admin-tenants.png](screenshots/admin-tenants.png)
 - [admin-models.png](screenshots/admin-models.png)
 
+## GitHub Actions evidence
+
+- Main verification: [run 39592804574](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39592804574) — success; deploy skipped by credential preflight.
+- Pull request guard: [run 39593194243](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39593194243) — success; only the `Verify` job, no deploy job.
+- Details and the private-repo Actions billing note: [evidence/github-actions.md](evidence/github-actions.md).
+
 ## Failures
 
-No local test failed at the reported snapshot. `npm run typecheck`, `npm run
-lint`, `npm run build`, `npm run verify:build`, `npm run audit:licenses`,
-`npm run validate:deploy` and official `tcb validate` all exited 0.
+No local or GitHub Actions test failed at the reported snapshot. `npm run
+typecheck`, `npm run lint`, `npm run build`, `npm run verify:build`, `npm run
+audit:licenses`, `npm run audit:security`, `npm run validate:deploy`, Playwright,
+official `tcb validate` and the main/PR GitHub workflows all exited successfully.
 
 ## Cannot be marked complete without external inputs
 
