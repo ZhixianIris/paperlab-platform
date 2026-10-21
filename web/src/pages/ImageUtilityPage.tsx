@@ -65,7 +65,7 @@ export function ImageUtilityPage() {
     setResults([]);
     setInfo(null);
     setError('');
-    setOptions(DEFAULTS);
+    setOptions({ ...DEFAULTS, blurRadius: utility === 'blur' ? 8 : 0 });
   }, [utility]);
 
   useEffect(() => {
