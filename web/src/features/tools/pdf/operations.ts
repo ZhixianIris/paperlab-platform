@@ -42,7 +42,7 @@ export function parsePageRanges(input: string, totalPages: number): number[] {
   return [...pages].sort((left, right) => left - right);
 }
 
-async function loadPdf(file: File) {
+export async function loadPdf(file: File) {
   try {
     const bytes = await file.arrayBuffer();
     return await PDFDocument.load(bytes, { updateMetadata: false });
@@ -63,7 +63,7 @@ export async function getPdfInfo(file: File): Promise<PdfInfo> {
   };
 }
 
-function baseName(filename: string): string {
+export function baseName(filename: string): string {
   return filename.replace(/\.[^.]+$/, '') || 'document';
 }
 

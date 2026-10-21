@@ -4166,3 +4166,8 @@ a.text-link,
 
 html { scroll-behavior: auto; }
 
+
+/* PDF browser-only advanced tools */
+.pdf-warning { padding: 15px 17px; background: #fff7ec; border: 1px solid #f1ddbb; border-radius: 12px; font-size: 13px; line-height: 1.7; color: #75522d; }
+.pdf-check { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; }
+.pdf-check input { width: auto; min-height: 0; }
