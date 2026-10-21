@@ -1,7 +1,7 @@
 # PaperLab / 纸研所
 
 Local-first PDF and image tools plus a real multi-tenant CloudBase PostgreSQL AI
-workspace. User files never leave the browser for the seven local tools. AI
+workspace. User files never leave the browser for browser-local PDF and image tools. AI
 jobs, balances, orders, tenants and admin actions live in CloudBase.
 
 > **Honest delivery status:** all offline code, PostgreSQL migrations, RLS,
@@ -27,8 +27,10 @@ jobs, balances, orders, tenants and admin actions live in CloudBase.
   Tool pages, `/login`, `/account`, `/t/:tenantSlug`, `/admin` share one site.
 - MiniMax-inspired white canvas, bundled DM Sans, black pill actions and gradient
   tool cards.
-- Local-only PDF merge, split, rotate (pdf-lib), image crop, resize, convert and
-  compress; PDF.js preview; no file upload, no file fingerprint, no analytics.
+- PDF toolbox: 23 local tools for pages, watermarks, forms, image conversion and scan cleanup.
+- Image toolbox: 18 local tools including rotate, mirror, tone/filter adjustment, watermark, borders,
+  region mosaic/blur/solid mask, color-key transparency, collages and batch operations.
+- Browser-local operations run without file upload, file fingerprinting or analytics.
 - Image crop/resize are direct-manipulation editors with draggable handles; no
   coordinate/size inputs. Crop works fully offline.
 - CloudBase Auth email/password + email OTP signup through `@cloudbase/js-sdk`.
@@ -162,6 +164,18 @@ OmniTools is fixed at commit
 [third_party/omni-tools/SOURCE.md](third_party/omni-tools/SOURCE.md) and
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). `npm run audit:licenses`
 fails closed on AGPL/GPL/SSPL/BUSL/unknown production licenses.
+
+## PDF and image tool boundaries
+
+- Structural PDF operations preserve native content where possible; raster PDF compression, grayscale
+  and light-background cleanup are lossy and may discard selectable text.
+- Image color-key transparency only handles uniform backgrounds, not AI semantic extraction.
+- A solid mask overwrites selected output pixels. Mosaic/blur effects are cosmetic and not
+  sufficient for confidential information redaction.
+- Image metadata is re-encoded for common EXIF removal, but no forensic claim is made.
+- Every added tool shares the existing React workbench, tenant switchboard and CloudBase schema.
+- New image tools are currently under pull-request verification and require passing browser
+  journeys before being treated as released.
 
 ## Not ready for public paid operation
 

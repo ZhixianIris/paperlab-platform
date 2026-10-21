@@ -17,6 +17,7 @@ import { ImageCropPage } from './pages/ImageCropPage';
 import { ImageResizePage } from './pages/ImageResizePage';
 import { ImageConvertPage } from './pages/ImageConvertPage';
 import { ImageCompressPage } from './pages/ImageCompressPage';
+import { ImageUtilityPage } from './pages/ImageUtilityPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 function ScrollToTop() {
@@ -45,6 +46,7 @@ export function App() {
             <Route path="image/resize" element={<ImageResizePage />} />
             <Route path="image/convert" element={<ImageConvertPage />} />
             <Route path="image/compress" element={<ImageCompressPage />} />
+            <Route path="image/:utility" element={<ImageUtilityPage />} />
             <Route path="ai" element={<ToolWorkbenchPage kind="ai" />} />
             <Route path="ai/image" element={<AiPage />} />
             <Route path="login" element={<LoginPage />} />
