@@ -162,7 +162,7 @@ export function TenantPage() {
           <h1>{publicTenant.name}</h1>
           <p>这是你的团队空间。登录后查看额度、功能和生成记录。</p>
           {configMissing ? (
-            <p className="notice notice-warn">登录暂不可用；本地工具仍可使用。</p>
+            <p className="notice notice-warn">登录暂不可用。</p>
           ) : (
             <Link className="button button-accent button-large" to={`/login?next=/t/${publicTenant.slug}`}>
               登录进入 <ArrowIcon size={18} />
@@ -254,7 +254,7 @@ export function TenantPage() {
         <div className="panel tenant-tools">
           <div className="panel-head">
             <h2>可用功能</h2>
-            <span className="muted">本地工具不消耗额度</span>
+            <span className="muted">无需额度</span>
           </div>
           <div className="tool-toggle-grid">
             {dashboard.tools.map((tool) => (
@@ -277,7 +277,7 @@ export function TenantPage() {
           <div className="local-tool-links">
             <Link to={`/pdf?tenant=${dashboard.tenant.slug}`}>PDF 工具</Link>
             <Link to={`/image?tenant=${dashboard.tenant.slug}`}>图片工具</Link>
-            <span>始终本地 · 无需额度</span>
+            <span>无需额度</span>
           </div>
         </div>
 

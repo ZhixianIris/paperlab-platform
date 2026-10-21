@@ -7,17 +7,21 @@ interface ResultCardProps {
   file: File;
   title?: string;
   detail?: string;
+  showPreview?: boolean;
 }
 
-export function ResultCard({ file, title = '处理完成', detail }: ResultCardProps) {
+export function ResultCard({ file, title = '处理完成', detail, showPreview = true }: ResultCardProps) {
   const [preview, setPreview] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!file.type.startsWith('image/')) return;
+    if (!showPreview || !file.type.startsWith('image/')) {
+      setPreview(null);
+      return;
+    }
     const url = URL.createObjectURL(file);
     setPreview(url);
     return () => URL.revokeObjectURL(url);
-  }, [file]);
+  }, [file, showPreview]);
 
   return (
     <section className="result-card" data-testid="result-card" aria-live="polite">
@@ -25,7 +29,7 @@ export function ResultCard({ file, title = '处理完成', detail }: ResultCardP
         <div>
           <span className="eyebrow">RESULT</span>
           <h3>{title}</h3>
-          <p>{detail || '文件已在浏览器内生成，未上传到服务器。'}</p>
+          <p>{detail || '文件已生成。'}</p>
         </div>
         <span className="success-badge">已完成</span>
       </div>
@@ -33,7 +37,9 @@ export function ResultCard({ file, title = '处理完成', detail }: ResultCardP
         {preview ? (
           <img src={preview} alt="处理结果预览" className="result-image" />
         ) : (
-          <div className="result-file-icon" aria-hidden="true">PDF</div>
+          <div className="result-file-icon" aria-hidden="true">
+            {file.type.startsWith('image/') ? 'IMG' : 'PDF'}
+          </div>
         )}
         <div className="result-meta">
           <strong>{file.name}</strong>

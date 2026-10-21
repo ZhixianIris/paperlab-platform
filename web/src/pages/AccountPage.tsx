@@ -48,7 +48,7 @@ export function AccountPage() {
       <div className="empty-page">
         <UserIcon size={42} />
         <h1>{configMissing ? '登录尚未配置' : '请先登录'}</h1>
-        <p>{configMissing ? '登录暂不可用，本地工具不受影响。' : '登录后查看空间、额度和使用记录。'}</p>
+        <p>{configMissing ? '登录暂不可用。' : '登录后查看空间、额度和使用记录。'}</p>
         {!configMissing ? <Link to="/login?next=/account" className="button button-accent">去登录</Link> : null}
         {error ? <p className="form-error">{error}</p> : null}
       </div>

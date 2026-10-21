@@ -67,7 +67,6 @@ export function PdfSplitPage() {
             setError('');
           }}
           title="选择要拆分的 PDF"
-          hint="上传后只在本机解析页数。"
           testId="pdf-split-drop"
         />
         {file ? <PdfPreview file={file} /> : null}

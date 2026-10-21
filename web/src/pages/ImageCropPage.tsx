@@ -12,6 +12,7 @@ import {
   IMAGE_ACCEPT,
 } from '../features/tools/image/operations';
 import { CropEditor, type CropRect } from '../features/tools/image/CropEditor';
+import { BeforeAfter } from '../features/tools/image/BeforeAfter';
 
 const tool = IMAGE_TOOLS[0];
 
@@ -91,7 +92,6 @@ export function ImageCropPage() {
             setError('');
           }}
           title="选择一张图片"
-          hint="拖入或点击选择"
           testId="image-crop-drop"
         />
       ) : (
@@ -143,7 +143,12 @@ export function ImageCropPage() {
             </ToolProcessButton>
             <span className="action-note">拖动即可调整，无需输入数值。</span>
           </div>
-          {result ? <ResultCard file={result} title="裁剪完成" detail={`${crop?.width} × ${crop?.height} 像素`} /> : null}
+          {result ? (
+            <>
+              <BeforeAfter before={file} after={result} beforeLabel="原图" afterLabel="裁剪结果" />
+              <ResultCard file={result} title="裁剪完成" detail={`${crop?.width} × ${crop?.height} 像素`} />
+            </>
+          ) : null}
         </>
       )}
       {!file && error ? <p className="form-error" role="alert">{error}</p> : null}

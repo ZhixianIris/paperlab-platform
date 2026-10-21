@@ -77,7 +77,6 @@ export function ImageCompressPage() {
             setError('');
           }}
           title="选择要压缩的图片"
-          hint="拖入或点击选择"
           testId="image-compress-drop"
         />
       ) : (

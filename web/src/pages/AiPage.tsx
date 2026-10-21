@@ -142,7 +142,7 @@ export function AiPage() {
         <SparklesIcon size={44} />
         <span className="eyebrow">AI IMAGE</span>
         <h1>登录后使用 AI 出图</h1>
-        <p>本地工具无需登录。</p>
+        <p>PDF 和图片工具无需登录。</p>
         <Link to="/login?next=/ai/image" className="button button-accent">登录</Link>
       </div>
     );

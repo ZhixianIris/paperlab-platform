@@ -25,6 +25,13 @@ test.describe('extended browser-local image tools', () => {
       await expect(page.locator('.tool-hero h1')).toBeVisible();
       await page.getByTestId('process-button').click();
       await expect(page.getByTestId('result-card')).toBeVisible({ timeout: 30_000 });
+      if (name === 'strip') {
+        await expect(page.getByTestId('compare-stage')).toHaveCount(0);
+        await expect(page.locator('.result-image')).toHaveCount(0);
+        await expect(page.locator('.image-utility-preview')).toHaveCount(0);
+      } else {
+        await expect(page.getByTestId('compare-stage')).toBeVisible();
+      }
       const file = await saveResult(page, testInfo);
       const bytes = await fs.readFile(file);
       expect(bytes.byteLength).toBeGreaterThan(100);
@@ -87,5 +94,30 @@ test.describe('extended browser-local image tools', () => {
     await page.getByTestId('process-button').click();
     await expect(page.getByTestId('result-card')).toBeVisible({ timeout: 30_000 });
     expect(remoteRequests).toEqual([]);
+  });
+
+  test('region tools use a draggable box instead of position inputs', async ({ page }) => {
+    await page.goto('/image/blur');
+    await page.getByTestId('image-blur-drop-input').setInputFiles(FIXTURES.image);
+    const region = page.getByTestId('utility-region');
+    await expect(region).toBeVisible();
+    await expect(page.getByLabel('区域宽度')).toHaveCount(0);
+    await expect(page.getByLabel('区域高度')).toHaveCount(0);
+
+    await page.getByTestId('utility-region-handle-se').scrollIntoViewIfNeeded();
+    await page.waitForTimeout(50);
+    const handle = await page.getByTestId('utility-region-handle-se').boundingBox();
+    const before = await region.boundingBox();
+    expect(handle).not.toBeNull();
+    expect(before).not.toBeNull();
+    if (handle && before) {
+      await page.mouse.move(handle.x + handle.width / 2, handle.y + handle.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(handle.x - 70, handle.y - 50, { steps: 8 });
+      await page.mouse.up();
+      const after = await region.boundingBox();
+      expect(after?.width).toBeLessThan(before.width);
+      expect(after?.height).toBeLessThan(before.height);
+    }
   });
 });

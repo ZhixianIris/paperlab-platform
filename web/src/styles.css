@@ -4211,3 +4211,531 @@ html { scroll-behavior: auto; }
 @media (max-width: 640px) {
   .image-utility-preview-inner img { max-height: 270px; }
 }
+
+/* Workbench cards: no section header, no numbering, 16:10 media cards */
+.workbench-page {
+  padding-top: 44px;
+}
+
+.workbench-grid-pdf .workbench-card,
+.workbench-grid-image .workbench-card {
+  aspect-ratio: 16 / 10;
+  min-height: 0;
+  padding: 24px;
+}
+
+.workbench-grid-image .workbench-card {
+  padding: 18px;
+  border-radius: 26px;
+}
+
+.workbench-grid-pdf .workbench-card:last-child {
+  grid-column: auto;
+}
+
+.workbench-card-top {
+  justify-content: flex-end;
+}
+
+.workbench-grid-image .workbench-arrow {
+  width: 32px;
+  height: 32px;
+}
+
+.workbench-grid-image .workbench-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+}
+
+.workbench-grid-image .workbench-card-body {
+  gap: 10px;
+}
+
+.workbench-grid-image .workbench-card h2 {
+  font-size: clamp(24px, 2vw, 30px);
+}
+
+.workbench-grid-pdf .workbench-card h2 {
+  font-size: clamp(28px, 2.8vw, 38px);
+}
+
+.workbench-grid-pdf .workbench-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 16px;
+}
+
+@media (max-width: 1100px) {
+  .workbench-grid-pdf .workbench-card:last-child {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .workbench-page { padding-top: 28px; }
+  .workbench-grid-pdf .workbench-card,
+  .workbench-grid-image .workbench-card {
+    padding: 18px;
+    border-radius: 24px;
+  }
+  .workbench-grid-pdf .workbench-icon,
+  .workbench-grid-image .workbench-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+  }
+  .workbench-grid-pdf .workbench-card h2,
+  .workbench-grid-image .workbench-card h2 {
+    font-size: 28px;
+  }
+  .workbench-card-body { gap: 10px; }
+  .workbench-arrow { width: 32px; height: 32px; }
+}
+
+/* Compact card grid: 50% card scale, 16:10, layout preserved */
+.workbench-grid {
+  gap: 12px;
+}
+
+.workbench-grid-pdf {
+  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+}
+
+.workbench-grid-image {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+
+.workbench-grid-pdf .workbench-card,
+.workbench-grid-image .workbench-card {
+  aspect-ratio: 16 / 10;
+  min-height: 0;
+  padding: 13px;
+  border-radius: 16px;
+}
+
+.workbench-grid-pdf .workbench-card-top,
+.workbench-grid-image .workbench-card-top {
+  justify-content: space-between;
+}
+
+.workbench-grid-pdf .workbench-arrow,
+.workbench-grid-image .workbench-arrow {
+  width: 21px;
+  height: 21px;
+}
+
+.workbench-grid-pdf .workbench-arrow svg,
+.workbench-grid-image .workbench-arrow svg {
+  width: 12px;
+  height: 12px;
+}
+
+.workbench-grid-pdf .workbench-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+}
+
+.workbench-grid-image .workbench-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+}
+
+.workbench-grid-pdf .workbench-icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.workbench-grid-image .workbench-icon svg {
+  width: 12px;
+  height: 12px;
+}
+
+.workbench-grid-pdf .workbench-card-body,
+.workbench-grid-image .workbench-card-body {
+  gap: 5px;
+}
+
+.workbench-grid-pdf .workbench-card h2 {
+  font-size: 18px;
+  line-height: 1.05;
+}
+
+.workbench-grid-image .workbench-card h2 {
+  font-size: 14px;
+  line-height: 1.08;
+}
+
+.workbench-grid-pdf .workbench-card h2,
+.workbench-grid-image .workbench-card h2 {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.workbench-grid-pdf .workbench-card::after,
+.workbench-grid-image .workbench-card::after {
+  right: -18px;
+  bottom: -32px;
+  width: 110px;
+  height: 110px;
+}
+
+/* Card header: icon and arrow share one line, title sits below */
+.workbench-card {
+  justify-content: flex-start;
+  gap: 18px;
+}
+
+.workbench-card-top {
+  justify-content: space-between;
+}
+
+.workbench-grid-pdf .workbench-card,
+.workbench-grid-image .workbench-card {
+  gap: 7px;
+}
+
+.workbench-grid-pdf .workbench-card h2,
+.workbench-grid-image .workbench-card h2 {
+  margin-top: 0;
+}
+
+.image-utility-watermark {
+  position: absolute;
+  z-index: 2;
+  max-width: 88%;
+  overflow: hidden;
+  color: #111;
+  font-weight: 600;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.image-utility-watermark.bottom-right { right: 4%; bottom: 5%; }
+.image-utility-watermark.top-left { top: 5%; left: 4%; }
+.image-utility-watermark.center {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.image-utility-region {
+  pointer-events: auto;
+  cursor: move;
+  touch-action: none;
+}
+.image-utility-region.is-dragging { cursor: grabbing; }
+
+.region-handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border: 2px solid #181818;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
+  touch-action: none;
+}
+.region-handle-nw { top: -6px; left: -6px; cursor: nwse-resize; }
+.region-handle-ne { top: -6px; right: -6px; cursor: nesw-resize; }
+.region-handle-sw { bottom: -6px; left: -6px; cursor: nesw-resize; }
+.region-handle-se { right: -6px; bottom: -6px; cursor: nwse-resize; }
+.region-handle:hover { background: var(--coral); }
+
+/* Larger cards (+30%) and wider, balanced workbench grid */
+.header-inner,
+.footer-inner {
+  max-width: 1440px;
+}
+
+.workbench-page {
+  max-width: 1440px;
+  padding-top: 48px;
+}
+
+.workbench-grid {
+  gap: 18px;
+}
+
+.workbench-grid-pdf {
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+}
+
+.workbench-grid-image {
+  grid-template-columns: repeat(auto-fill, minmax(205px, 1fr));
+}
+
+.workbench-grid-pdf .workbench-card,
+.workbench-grid-image .workbench-card {
+  gap: 9px;
+  padding: 17px;
+  border-radius: 20px;
+}
+
+.workbench-grid-pdf .workbench-arrow,
+.workbench-grid-image .workbench-arrow {
+  width: 27px;
+  height: 27px;
+}
+
+.workbench-grid-pdf .workbench-arrow svg,
+.workbench-grid-image .workbench-arrow svg {
+  width: 15px;
+  height: 15px;
+}
+
+.workbench-grid-pdf .workbench-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+}
+
+.workbench-grid-image .workbench-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+}
+
+.workbench-grid-pdf .workbench-icon svg {
+  width: 19px;
+  height: 19px;
+}
+
+.workbench-grid-image .workbench-icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.workbench-grid-pdf .workbench-card h2 {
+  font-size: 23px;
+}
+
+.workbench-grid-image .workbench-card h2 {
+  font-size: 18px;
+}
+
+@media (max-width: 760px) {
+  .workbench-page {
+    padding-top: 30px;
+  }
+  .workbench-grid {
+    gap: 12px;
+  }
+  .workbench-grid-pdf .workbench-card,
+  .workbench-grid-image .workbench-card {
+    gap: 7px;
+    padding: 14px;
+    border-radius: 17px;
+  }
+  .workbench-grid-pdf .workbench-icon,
+  .workbench-grid-image .workbench-icon {
+    width: 30px;
+    height: 30px;
+  }
+  .workbench-grid-pdf .workbench-card h2 {
+    font-size: 20px;
+  }
+  .workbench-grid-image .workbench-card h2 {
+    font-size: 16px;
+  }
+}
+
+/* Compact tool-page heading: no eyebrow, no local pill, tighter spacing */
+.tool-page {
+  padding-top: 20px;
+}
+
+.tool-topline {
+  margin-bottom: 16px;
+  justify-content: flex-start;
+}
+
+.tool-hero {
+  margin-bottom: 18px;
+}
+
+.tool-hero h1 {
+  margin-bottom: 8px;
+  font-size: clamp(30px, 3.2vw, 40px);
+  line-height: 1.05;
+  letter-spacing: -.03em;
+}
+
+.tool-hero p {
+  font-size: 13px;
+}
+
+@media (max-width: 760px) {
+  .tool-page {
+    padding-top: 16px;
+  }
+  .tool-topline {
+    margin-bottom: 12px;
+  }
+  .tool-hero h1 {
+    font-size: 30px;
+  }
+}
+
+.tool-hero {
+  display: block;
+}
+
+/* Tool title block: right-aligned, description stacked underneath */
+.tool-hero {
+  width: fit-content;
+  max-width: 100%;
+  margin-left: auto;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.tool-hero h1,
+.tool-hero p {
+  text-align: right;
+}
+
+@media (max-width: 760px) {
+  .tool-hero {
+    width: auto;
+    margin-left: 0;
+    align-items: flex-start;
+    text-align: left;
+  }
+  .tool-hero h1,
+  .tool-hero p {
+    text-align: left;
+  }
+}
+
+/* Centered uploader: title only */
+.dropzone {
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.dropzone-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+}
+
+.dropzone strong {
+  max-width: 100%;
+  margin-bottom: 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Header row: back button and title block share the same top edge */
+.tool-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 18px;
+}
+
+.back-link {
+  padding: 8px 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.back-link:hover {
+  border-color: var(--ink);
+  background: var(--paper);
+}
+
+.back-link .back-arrow {
+  width: 18px;
+  height: 18px;
+}
+
+.tool-hero {
+  margin-bottom: 0;
+}
+
+/* Image cards use the same dimensions and type scale as PDF cards */
+.workbench-grid-image {
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+}
+
+.workbench-grid-image .workbench-card {
+  gap: 9px;
+  padding: 17px;
+  border-radius: 20px;
+}
+
+.workbench-grid-image .workbench-arrow {
+  width: 27px;
+  height: 27px;
+}
+
+.workbench-grid-image .workbench-arrow svg {
+  width: 15px;
+  height: 15px;
+}
+
+.workbench-grid-image .workbench-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+}
+
+.workbench-grid-image .workbench-icon svg {
+  width: 19px;
+  height: 19px;
+}
+
+.workbench-grid-image .workbench-card h2 {
+  font-size: 23px;
+}
+
+@media (max-width: 760px) {
+  .tool-head {
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .back-link {
+    padding: 7px 12px;
+    font-size: 13px;
+  }
+  .tool-hero {
+    width: 100%;
+    margin-left: 0;
+    align-items: flex-start;
+    text-align: left;
+  }
+  .tool-hero h1,
+  .tool-hero p {
+    text-align: left;
+  }
+  .workbench-grid-image .workbench-card {
+    gap: 7px;
+    padding: 14px;
+    border-radius: 17px;
+  }
+  .workbench-grid-image .workbench-icon,
+  .workbench-grid-pdf .workbench-icon {
+    width: 30px;
+    height: 30px;
+  }
+  .workbench-grid-image .workbench-card h2 {
+    font-size: 20px;
+  }
+}

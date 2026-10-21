@@ -67,7 +67,6 @@ export function PdfRotatePage() {
             setError('');
           }}
           title="选择要旋转的 PDF"
-          hint="旋转页面方向，而不是把页面转成图片。"
           testId="pdf-rotate-drop"
         />
         {file ? <PdfPreview file={file} /> : null}
@@ -125,7 +124,6 @@ export function PdfRotatePage() {
         <ToolProcessButton processing={processing} onClick={() => void process()} disabled={!file}>
           旋转 PDF
         </ToolProcessButton>
-        <span className="action-note">矢量内容与文字层保持不变。</span>
       </div>
       {result ? <ResultCard file={result} title="旋转完成" /> : null}
     </ToolPageShell>

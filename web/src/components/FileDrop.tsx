@@ -8,11 +8,10 @@ interface FileDropProps {
   files: File[];
   onChange: (files: File[]) => void;
   title: string;
-  hint: string;
   testId?: string;
 }
 
-export function FileDrop({ accept, multiple = false, files, onChange, title, hint, testId }: FileDropProps) {
+export function FileDrop({ accept, multiple = false, files, onChange, title, testId }: FileDropProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
 
@@ -69,11 +68,7 @@ export function FileDrop({ accept, multiple = false, files, onChange, title, hin
         <div className="dropzone-icon" aria-hidden="true">
           {accept.includes('pdf') ? <FileIcon size={30} /> : <ImageIcon size={30} />}
         </div>
-        <div>
-          <strong>{title}</strong>
-          <p>{hint}</p>
-          <span className="dropzone-badge">文件留在你的设备上</span>
-        </div>
+        <strong>{title}</strong>
       </div>
       <input
         ref={inputRef}

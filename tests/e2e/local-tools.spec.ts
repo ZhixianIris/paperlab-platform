@@ -134,6 +134,7 @@ test.describe('local-only PDF and image tools', () => {
     await dragTestId(page, 'crop-handle-se', -150, -105);
     await page.getByTestId('process-button').click();
     await expect(page.getByTestId('result-card')).toBeVisible();
+    await expect(page.getByTestId('compare-stage')).toBeVisible();
     await page.screenshot({ path: testInfo.outputPath('offline-image-crop.png') });
     await fs.writeFile(
       testInfo.outputPath('offline-image-network-log.json'),

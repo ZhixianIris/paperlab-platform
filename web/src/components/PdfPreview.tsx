@@ -43,7 +43,7 @@ export function PdfPreview({ file }: { file: File }) {
       await page.render({ canvas, canvasContext: context, viewport: scaled }).promise;
       setState('ready');
     } catch {
-      setError('预览未能加载，但本地处理功能不受影响。');
+      setError('预览未能加载。');
       setState('error');
     }
   }
@@ -51,12 +51,12 @@ export function PdfPreview({ file }: { file: File }) {
   return (
     <div className="pdf-preview">
       <div className="pdf-preview-head">
-        <span><FileIcon size={16} /> 本地预览</span>
+        <span><FileIcon size={16} /> 预览</span>
         <button type="button" className="text-button" onClick={() => void renderPreview()} data-testid="pdf-preview">
           {state === 'ready' ? '重新预览第一页' : '预览第一页'}
         </button>
       </div>
-      {state === 'loading' ? <p className="muted">正在本地解析 PDF…</p> : null}
+      {state === 'loading' ? <p className="muted">正在解析 PDF…</p> : null}
       {state === 'error' ? <p className="form-error">{error}</p> : null}
       {state === 'ready' ? <p className="muted">共 {pages} 页 · 仅渲染第一页</p> : null}
       <canvas ref={canvasRef} className={state === 'ready' ? 'pdf-canvas visible' : 'pdf-canvas'} />

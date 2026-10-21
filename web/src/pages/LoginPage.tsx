@@ -90,7 +90,7 @@ export function LoginPage() {
         {configMissing ? (
           <div className="notice notice-warn">
             <strong>登录暂不可用</strong>
-            <p>本地 PDF 和图片工具仍可正常使用。</p>
+            <p>PDF 和图片工具仍可正常使用。</p>
           </div>
         ) : null}
 
@@ -168,13 +168,13 @@ export function LoginPage() {
       <aside className="auth-side">
         <div className="auth-side-badge"><LockIcon size={18} /> 安全登录</div>
         <h2>你的空间，<br />你的额度。</h2>
-        <p>本地工具无需登录。登录后可保存 AI 作品、查看剩余额度与管理空间成员。</p>
+        <p>PDF 和图片工具无需登录。登录后可保存 AI 作品、查看剩余额度与管理空间成员。</p>
         <ul>
           <li><SparklesIcon size={16} /> AI 图像生成</li>
           <li><LockIcon size={16} /> 团队空间</li>
           <li><LockIcon size={16} /> 用量记录</li>
         </ul>
-        <Link to="/pdf" className="text-link">先使用本地工具 →</Link>
+        <Link to="/pdf" className="text-link">先使用 PDF / 图片工具 →</Link>
       </aside>
     </div>
   );

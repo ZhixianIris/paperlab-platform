@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { useParams } from 'react-router-dom';
 import { FileDrop } from '../components/FileDrop';
 import { ResultCard } from '../components/ResultCard';
@@ -29,6 +29,12 @@ const FORMATS: Array<{ mime: OutputFormat; name: string }> = [
   { mime: 'image/webp', name: 'WebP' },
 ];
 
+type RegionMode = 'move' | 'nw' | 'ne' | 'sw' | 'se';
+
+function clamp01(value: number): number {
+  return Math.min(1, Math.max(0, value));
+}
+
 function ValueSlider({ label, value, min, max, step = 1, onChange, suffix = '' }: {
   label: string; value: number; min: number; max: number; step?: number;
   onChange: (value: number) => void; suffix?: string;
@@ -56,6 +62,16 @@ export function ImageUtilityPage() {
   const [results, setResults] = useState<File[]>([]);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState('');
+  const [regionDragging, setRegionDragging] = useState(false);
+  const previewRef = useRef<HTMLImageElement>(null);
+  const regionDragRef = useRef<{
+    mode: RegionMode;
+    startX: number;
+    startY: number;
+    startRegion: ImageTransformOptions['region'];
+    displayWidth: number;
+    displayHeight: number;
+  } | null>(null);
   const isMultiple = key === 'collage' || key === 'batch';
   const file = files[0] ?? null;
   const url = useObjectUrl(file);
@@ -83,23 +99,74 @@ export function ImageUtilityPage() {
     setResults([]);
   }
 
-  function updateRegion(field: 'x' | 'y' | 'width' | 'height', percent: number) {
-    const number = percent / 100;
-    setOptions((current) => {
-      const next = { ...current.region, [field]: number };
-      if (field === 'x' || field === 'width') {
-        if (next.x + next.width > 1) {
-          if (field === 'x') next.width = Math.max(.01, 1 - next.x);
-          else next.x = Math.max(0, 1 - next.width);
-        }
-      } else if (next.y + next.height > 1) {
-        if (field === 'y') next.height = Math.max(.01, 1 - next.y);
-        else next.y = Math.max(0, 1 - next.height);
-      }
-      return { ...current, region: next };
-    });
-    setResults([]);
+  function beginRegionDrag(mode: RegionMode, event: ReactPointerEvent<HTMLElement>) {
+    const image = previewRef.current;
+    if (!image) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const rect = image.getBoundingClientRect();
+    regionDragRef.current = {
+      mode,
+      startX: event.clientX,
+      startY: event.clientY,
+      startRegion: { ...options.region },
+      displayWidth: rect.width,
+      displayHeight: rect.height,
+    };
+    setRegionDragging(true);
   }
+
+  useEffect(() => {
+    if (!regionDragging) return;
+    function onMove(event: PointerEvent) {
+      const drag = regionDragRef.current;
+      if (!drag) return;
+      const dx = (event.clientX - drag.startX) / Math.max(1, drag.displayWidth);
+      const dy = (event.clientY - drag.startY) / Math.max(1, drag.displayHeight);
+      const start = drag.startRegion;
+      const min = 0.03;
+      let { x, y, width, height } = start;
+
+      if (drag.mode === 'move') {
+        x = clamp01(start.x + dx);
+        y = clamp01(start.y + dy);
+        x = Math.min(x, 1 - width);
+        y = Math.min(y, 1 - height);
+      } else {
+        if (drag.mode.includes('w')) {
+          const right = start.x + start.width;
+          x = Math.min(Math.max(start.x + dx, 0), right - min);
+          width = right - x;
+        }
+        if (drag.mode.includes('e')) {
+          width = Math.min(Math.max(start.width + dx, min), 1 - start.x);
+        }
+        if (drag.mode.includes('n')) {
+          const bottom = start.y + start.height;
+          y = Math.min(Math.max(start.y + dy, 0), bottom - min);
+          height = bottom - y;
+        }
+        if (drag.mode.includes('s')) {
+          height = Math.min(Math.max(start.height + dy, min), 1 - start.y);
+        }
+      }
+
+      setOptions((current) => ({ ...current, region: { x, y, width, height } }));
+      setResults([]);
+    }
+    function onUp() {
+      regionDragRef.current = null;
+      setRegionDragging(false);
+    }
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp, { once: true });
+    window.addEventListener('pointercancel', onUp, { once: true });
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+    };
+  }, [regionDragging]);
 
   async function process() {
     if (files.length === 0) return;
@@ -146,38 +213,80 @@ export function ImageUtilityPage() {
 
   const isSelectedRegion = ['pixelate', 'blur', 'mask'].includes(key);
   const isOutputTransparent = key === 'background' || key === 'round';
+  const hasVisualChange = !['strip', 'collage', 'batch'].includes(key);
+  const hasSourcePreview = hasVisualChange;
+  const qualityUseful = options.format !== 'image/png';
 
   return (
     <ToolPageShell tool={tool}>
       <FileDrop accept={IMAGE_ACCEPT} multiple={isMultiple} files={files}
         onChange={(next) => { setFiles(next); setResults([]); setError(''); }}
         title={isMultiple ? '选择多张图片' : '选择一张图片'}
-        hint="PNG、JPEG、WebP；图片始终在浏览器本地处理。"
         testId={`image-${utility}-drop`} />
 
-      {url ? (
+      {url && hasSourcePreview ? (
         <div className="image-utility-preview">
           <div className="image-utility-preview-inner">
-            <img src={url} alt="原始图片预览" style={{
+            <img ref={previewRef} src={url} alt="原始图片预览" style={{
               filter: key === 'adjust'
                 ? `brightness(${options.brightness}%) contrast(${options.contrast}%) saturate(${options.saturation}%) grayscale(${options.grayscale}%) sepia(${options.sepia}%) blur(${options.blurRadius}px)`
                 : undefined,
               transform: key === 'rotate' ? `rotate(${options.angle}deg)` :
                 key === 'flip' ? `scale${options.direction === 'horizontal' ? 'X' : 'Y'}(-1)` : undefined,
+              borderRadius: key === 'round'
+                ? `${Math.min(50, (options.cornerRadius / Math.max(1, Math.min(info?.width || 1, info?.height || 1))) * 100)}%`
+                : undefined,
+              boxShadow: key === 'frame' ? `0 0 0 ${options.border}px ${options.color}` : undefined,
             }} />
+            {key === 'watermark' ? (
+              <span
+                className={`image-utility-watermark ${options.position}`}
+                style={{
+                  color: options.color,
+                  opacity: options.opacity / 100,
+                  fontSize: `${Math.max(10, Math.min(56, options.textSize * 0.5))}px`,
+                }}
+              >
+                {options.text || ' '}
+              </span>
+            ) : null}
             {isSelectedRegion ? (
-              <div className="image-utility-region" style={{
-                left: `${options.region.x * 100}%`,
-                top: `${options.region.y * 100}%`,
-                width: `${options.region.width * 100}%`,
-                height: `${options.region.height * 100}%`,
-              }} aria-label="将要处理的区域" />
+              <div
+                className={`image-utility-region ${regionDragging ? 'is-dragging' : ''}`}
+                style={{
+                  left: `${options.region.x * 100}%`,
+                  top: `${options.region.y * 100}%`,
+                  width: `${options.region.width * 100}%`,
+                  height: `${options.region.height * 100}%`,
+                  background: key === 'mask' ? `${options.color}b3` : key === 'blur' ? 'transparent' : undefined,
+                  backdropFilter: key === 'blur' ? `blur(${options.blurRadius}px)` : undefined,
+                }}
+                aria-label="将要处理的区域"
+                onPointerDown={(event) => beginRegionDrag('move', event)}
+                data-testid="utility-region"
+                role="presentation"
+              >
+                {(['nw', 'ne', 'sw', 'se'] as const).map((corner) => (
+                  <button
+                    key={corner}
+                    type="button"
+                    className={`region-handle region-handle-${corner}`}
+                    aria-label={`拖动${corner}区域控制点`}
+                    data-testid={`utility-region-handle-${corner}`}
+                    onPointerDown={(event) => beginRegionDrag(corner, event)}
+                  />
+                ))}
+              </div>
             ) : null}
           </div>
           <p className="muted">
             {info ? `${info.width} × ${info.height} · ${files.length} 张文件` : '读取中…'}
           </p>
         </div>
+      ) : null}
+
+      {isSelectedRegion ? (
+        <p className="visual-hint">拖动框内移动区域，拖动四角调整范围。</p>
       ) : null}
 
       <div className="field-grid">
@@ -253,19 +362,6 @@ export function ImageUtilityPage() {
           <ValueSlider label="圆角半径" min={0} max={Math.floor(Math.min(info?.width || 200, info?.height || 200) / 2)}
             value={Math.min(options.cornerRadius, Math.floor(Math.min(info?.width || 200, info?.height || 200) / 2))}
             suffix="px" onChange={(n) => update('cornerRadius', n)} />
-        ) : null}
-
-        {isSelectedRegion ? (
-          <>
-            <ValueSlider label="区域横向位置" min={0} max={99} value={Math.round(options.region.x * 100)} suffix="%"
-              onChange={(n) => updateRegion('x', n)} />
-            <ValueSlider label="区域纵向位置" min={0} max={99} value={Math.round(options.region.y * 100)} suffix="%"
-              onChange={(n) => updateRegion('y', n)} />
-            <ValueSlider label="区域宽度" min={1} max={100} value={Math.round(options.region.width * 100)} suffix="%"
-              onChange={(n) => updateRegion('width', n)} />
-            <ValueSlider label="区域高度" min={1} max={100} value={Math.round(options.region.height * 100)} suffix="%"
-              onChange={(n) => updateRegion('height', n)} />
-          </>
         ) : null}
 
         {key === 'pixelate' ? (
@@ -352,9 +448,12 @@ export function ImageUtilityPage() {
           </label>
         ) : null}
 
-        {key !== 'collage' && key !== 'mask' && key !== 'background' && key !== 'round' ? (
-          <ValueSlider label="有损格式品质" min={30} max={100} value={options.quality} suffix="%"
-            onChange={(n) => update('quality', n)} />
+        {key !== 'collage' && key !== 'mask' && key !== 'background' && key !== 'round' && qualityUseful ? (
+          <label className="field">
+            <span>有损格式品质: {options.quality}%</span>
+            <input type="range" min={30} max={100} value={options.quality}
+              onChange={(event) => update('quality', Number(event.target.value))} aria-label="有损格式品质" />
+          </label>
         ) : null}
       </div>
 
@@ -378,15 +477,18 @@ export function ImageUtilityPage() {
       <div className="action-row">
         <ToolProcessButton processing={processing} disabled={files.length === 0 || !info}
           onClick={() => void process()}>{tool.title}</ToolProcessButton>
-        <span className="action-note">浏览器本地执行 · 不消耗 AI 额度</span>
       </div>
 
-      {results.length === 1 && file ? (
+      {hasVisualChange && results.length === 1 && file ? (
         <BeforeAfter before={file} after={results[0]} beforeLabel="原图" afterLabel="处理后" />
+      ) : null}
+      {key === 'strip' && results[0] ? (
+        <p className="muted" role="note">画面未改变；输出文件已重新编码，常见 EXIF 信息已移除。</p>
       ) : null}
       {results.map((result, index) =>
         <ResultCard key={`${result.name}-${index}`} file={result}
-          title={results.length > 1 ? `结果 ${index + 1}` : '处理完成'} />)}
+          title={results.length > 1 ? `结果 ${index + 1}` : '处理完成'}
+          showPreview={key !== 'strip'} />)}
     </ToolPageShell>
   );
 }

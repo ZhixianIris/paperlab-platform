@@ -204,9 +204,6 @@ export function PdfUtilityPage() {
             setError('');
           }}
           title={isImagesToPdf ? '选择 PNG / JPEG 图片（按选择顺序生成 PDF）' : '选择 PDF 文件'}
-          hint={isImagesToPdf
-            ? '支持多张图片，按顺序写入 PDF，文件始终留在本机。'
-            : '在浏览器中解析和处理文件，不会上传到服务器。'}
           testId={`pdf-${utility}-drop`}
         />
         {file ? <PdfPreview file={file} /> : null}
@@ -310,7 +307,7 @@ export function PdfUtilityPage() {
               <span>透明度 {opacity}%</span>
               <input type="range" min={5} max={100} value={opacity}
                 onChange={(event) => setOpacity(Number(event.target.value))} />
-              <small>文字会在本地绘制为透明图层，不会改动 PDF 正文文字层。</small>
+              <small>文字会绘制为透明图层，不会改动 PDF 正文文字层。</small>
             </label>
           </>
         ) : null}
@@ -453,7 +450,7 @@ export function PdfUtilityPage() {
       {key === 'pdf.insert' ? (
         <div className="workbench-section">
           <FileDrop accept="application/pdf,.pdf" files={additionalFiles} onChange={setAdditionalFiles}
-            title="选择要插入的另一个 PDF" hint="选中的页将插入第一个文档指定位置。"
+            title="选择要插入的另一个 PDF"
             testId="pdf-insert-secondary" />
           <label className="field">
             <span>插入文件的页码（留空 = 全部）</span>
@@ -464,7 +461,7 @@ export function PdfUtilityPage() {
       ) : null}
       {key === 'pdf.stamp' ? (
         <FileDrop accept="image/png,image/jpeg,.png,.jpg,.jpeg" files={stampFiles} onChange={setStampFiles}
-          title="选择印章或手写签名 PNG/JPEG" hint="建议使用透明背景 PNG，图片不会上传。"
+          title="选择印章或手写签名 PNG/JPEG"
           testId="stamp-image-drop" />
       ) : null}
 
@@ -492,7 +489,7 @@ export function PdfUtilityPage() {
           {tool.title}
         </ToolProcessButton>
         <span className="action-note">
-          {info ? `${info.pageCount} 页 · ` : ''}本地处理，无服务器上传
+          {info ? `${info.pageCount} 页` : ''}
         </span>
       </div>
       {results.map((item, index) => (

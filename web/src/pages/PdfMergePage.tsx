@@ -81,7 +81,6 @@ export function PdfMergePage() {
             setError('');
           }}
           title="拖入 PDF，或点击选择"
-          hint="支持多选；文件按下方顺序合并，全部在本地完成。"
           testId="pdf-merge-drop"
         />
         {files.length > 1 ? (
@@ -133,7 +132,6 @@ export function PdfMergePage() {
         <ToolProcessButton processing={processing} onClick={() => void process()} disabled={files.length < 2}>
           合并 {files.length || ''} 个 PDF
         </ToolProcessButton>
-        <span className="action-note">不压缩、不栅格化，保留原始文字层。</span>
       </div>
       {result ? <ResultCard file={result} title="PDF 已合并" /> : null}
     </ToolPageShell>

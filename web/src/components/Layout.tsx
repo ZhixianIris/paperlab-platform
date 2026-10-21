@@ -65,12 +65,12 @@ export function Layout() {
 
       {!online ? (
         <div className="offline-banner" role="status" data-testid="offline-banner">
-          <span className="live-dot" /> 网络已断开 · 本地 PDF / 图片工具仍可处理并下载
+          <span className="live-dot" /> 网络已断开
         </div>
       ) : null}
       {configMissing ? (
         <div className="config-banner" role="status">
-          在线功能暂时不可用，本地 PDF / 图片工具不受影响。
+          在线功能暂时不可用。
         </div>
       ) : null}
 
@@ -82,7 +82,7 @@ export function Layout() {
         <div className="footer-inner">
           <div>
             <div className="footer-brand">PaperLab</div>
-            <p>本地处理，文件不离开浏览器。</p>
+            <p>PDF、图片与 AI 工具。</p>
           </div>
           <div className="footer-meta">
             <span>PDF</span>

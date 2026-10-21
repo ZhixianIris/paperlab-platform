@@ -83,7 +83,6 @@ export function ImageResizePage() {
             setError('');
           }}
           title="选择一张图片"
-          hint="拖入或点击选择"
           testId="image-resize-drop"
         />
       ) : (

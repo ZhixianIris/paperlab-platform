@@ -32,12 +32,10 @@ const WORKBENCH = {
 
 function WorkbenchCard({
   tool,
-  index,
   tone,
   query,
 }: {
   tool: ToolMeta;
-  index: number;
   tone: Tone;
   query: string;
 }) {
@@ -48,13 +46,10 @@ function WorkbenchCard({
       data-testid={`workbench-${tool.key}`}
     >
       <div className="workbench-card-top">
-        <span className="workbench-index">{String(index + 1).padStart(2, '0')}</span>
+        <span className="workbench-icon"><ToolGlyph icon={tool.icon} size={28} /></span>
         <span className="workbench-arrow"><ArrowIcon size={20} /></span>
       </div>
-      <div className="workbench-card-body">
-        <span className="workbench-icon"><ToolGlyph icon={tool.icon} size={28} /></span>
-        <h2>{tool.title}</h2>
-      </div>
+      <h2>{tool.title}</h2>
     </Link>
   );
 }
@@ -85,25 +80,24 @@ export function ToolWorkbenchPage({ kind }: { kind: WorkbenchKind }) {
 
   return (
     <div className="workbench-page" data-testid={`workbench-${kind}`}>
-      <header className="workbench-head">
-        <div>
-          <span className="eyebrow">{workbench.eyebrow}</span>
-          <h1>{workbench.title}</h1>
-        </div>
-        <span className="workbench-count">{scope.status === 'ready' ? `${enabledCount} 个工具` : workbench.count}</span>
-      </header>
+      {kind === 'ai' ? (
+        <header className="workbench-head">
+          <div>
+            <span className="eyebrow">{workbench.eyebrow}</span>
+            <h1>{workbench.title}</h1>
+          </div>
+          <span className="workbench-count">{scope.status === 'ready' ? `${enabledCount} 个工具` : workbench.count}</span>
+        </header>
+      ) : null}
 
       {kind === 'ai' ? (scope.status === 'ready' && !scope.keys.has('ai.image.generate') ?
         <p className="muted">此团队尚未启用 AI 出图。</p> : <div className="workbench-grid workbench-grid-ai">
           <Link to={aiHref} className="workbench-card tone-ink workbench-ai-card" data-testid="workbench-ai-image">
             <div className="workbench-card-top">
-              <span className="workbench-index">01</span>
+              <span className="workbench-icon"><SparklesIcon size={30} /></span>
               <span className="workbench-arrow"><ArrowIcon size={20} /></span>
             </div>
-            <div className="workbench-card-body">
-              <span className="workbench-icon"><SparklesIcon size={30} /></span>
-              <h2>图像生成</h2>
-            </div>
+            <h2>图像生成</h2>
           </Link>
         </div>
       ) : (
@@ -112,7 +106,6 @@ export function ToolWorkbenchPage({ kind }: { kind: WorkbenchKind }) {
             <WorkbenchCard
               key={tool.key}
               tool={tool}
-              index={index}
               tone={TONES[index % TONES.length]}
               query={scope.query}
             />

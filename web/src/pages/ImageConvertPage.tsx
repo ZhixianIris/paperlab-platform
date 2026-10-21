@@ -68,7 +68,6 @@ export function ImageConvertPage() {
             setError('');
           }}
           title="选择要转换的图片"
-          hint="PNG、JPEG、WebP"
           testId="image-convert-drop"
         />
       ) : (

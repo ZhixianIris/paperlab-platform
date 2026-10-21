@@ -148,7 +148,7 @@ export const PDF_TOOLS: ToolMeta[] = [
     key: 'pdf.background',
     path: '/pdf/background',
     title: '扫描件去浅色背景',
-    short: '本机增强扫描 PDF 白底',
+    short: '增强扫描 PDF 白底',
     description: '适合浅色纹理背景；有损处理，必须检查正文完整性。',
     group: 'pdf',
     icon: 'compress',

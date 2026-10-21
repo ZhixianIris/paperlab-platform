@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowIcon, LockIcon } from './Icons';
+import { ArrowIcon } from './Icons';
 import type { ToolMeta } from '../lib/tools';
 import { tenantScopeMessage, useTenantToolScope } from '../lib/tenantTools';
 
@@ -15,17 +15,11 @@ export function ToolPageShell({ tool, children }: ToolPageShellProps) {
   const allowed = scope.status === 'public' || (scope.status === 'ready' && scope.keys.has(tool.key));
   return (
     <div className="tool-page">
-      <div className="tool-topline">
+      <header className="tool-head">
         <Link to={groupPath} className="back-link">
-          <ArrowIcon size={15} className="back-arrow" /> {tool.group === 'pdf' ? 'PDF 工作台' : '图片工作台'}
+          <ArrowIcon size={18} className="back-arrow" /> {tool.group === 'pdf' ? 'PDF 工作台' : '图片工作台'}
         </Link>
-        <span className="local-pill">
-          <LockIcon size={14} /> 本机处理
-        </span>
-      </div>
-      <header className="tool-hero">
-        <div>
-          <span className="eyebrow">{tool.group === 'pdf' ? 'PDF TOOL' : 'IMAGE TOOL'}</span>
+        <div className="tool-hero">
           <h1>{tool.title}</h1>
           <p>{tool.short}</p>
         </div>
