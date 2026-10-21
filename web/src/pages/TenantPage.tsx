@@ -275,8 +275,8 @@ export function TenantPage() {
             ))}
           </div>
           <div className="local-tool-links">
-            <Link to="/pdf">PDF 工具</Link>
-            <Link to="/image">图片工具</Link>
+            <Link to={`/pdf?tenant=${dashboard.tenant.slug}`}>PDF 工具</Link>
+            <Link to={`/image?tenant=${dashboard.tenant.slug}`}>图片工具</Link>
             <span>始终本地 · 无需额度</span>
           </div>
         </div>
