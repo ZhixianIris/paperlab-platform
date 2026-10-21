@@ -15,3 +15,4 @@ node_modules/react-router
 
 To address all issues (including breaking changes), run:
   npm audit fix --force
+exit=0

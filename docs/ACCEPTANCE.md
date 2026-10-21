@@ -1,7 +1,7 @@
 # Acceptance status
 
 Sampled after local verification and a green GitHub Actions run at commit
-`24a53b4134bb3ecf15248512d1b3384a4585a0f3`. External items are not represented
+`35eb82e65c3398c4a27d08939543900494148891`. External items are not represented
 as passed.
 
 ## Completion matrix
@@ -30,10 +30,10 @@ as passed.
 | Payment API + disabled boundary | **PASS (boundary) / BLOCKED (provider)** | `orders.create` returns `payments_disabled`; no fake order/payment; callback not implemented |
 | Declarative config v2.1 + CLI 3.8.4 | **PASS (static/official validate)** | `tcb validate` → `valid: true`; config/workflow guard checks 42/42 |
 | GitHub PR does not deploy | **PASS (actual)** | Temporary PR #1 run [39593194243](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39593194243) — only `Verify`, no deploy job |
-| Actual GitHub Actions run | **PASS** | Main run [39592804574](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39592804574) success; 23 API + 3 unit + 9 Playwright at that commit; newer UI run pending list below |
+| Actual GitHub Actions run | **PASS** | Main run [39600035784](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39600035784) success; 23 API + 3 unit + 10 Playwright, builds and scans green |
 | Actual CloudBase deploy / public URL | **BLOCKED_EXTERNAL** | No credentials. Main workflow preflight skipped deploy after warnings; no URL can be honestly supplied |
 | SPA fallback `/admin`, `/t/*` | **PASS (local preview routing)**; **BLOCKED (CloudBase error-document setting)** | App uses BrowserRouter; deploy script sets hosting error document and smoke tests it |
-| License audit | **PASS** | 706 packages audited locally (platform-dependent count on CI); 0 denied; AGPL/GPL/SSPL/BUSL fail closed; one reviewed dev-only CloudBase no-license package, not distributed |
+| License audit | **PASS** | 706 packages locally / 708 on Linux CI; 0 denied; AGPL/GPL/SSPL/BUSL fail closed; one reviewed dev-only CloudBase no-license package, not distributed |
 | Browser secret scan | **PASS** | `verify:build` finds no configured secret values/credential patterns |
 | Production dependency security | **PASS (high)** | `npm audit --omit=dev --audit-level=high` exits 0; remaining 2 moderate React Router v6 advisories are SSR/backslash classes, mitigated (no SSR; `next` redirect sanitized) |
 | Domain/ICP/AI compliance | **BLOCKED_EXTERNAL** | Not supplied |
@@ -63,7 +63,7 @@ Offline tests write `offline-pdf-merge.png`, `offline-image-crop.png` and
 record zero HTTP requests during the local operation.
 
 npm run audit:licenses
-706 locally, platform-dependent on Linux CI, 0 denied
+706 locally, 708 on Linux CI, 0 denied
 
 node tcb validate --json
 {"valid":true,"errors":[],"warnings":[]}
@@ -123,7 +123,7 @@ fixture with a generic label; no external model is claimed.
 
 ## GitHub Actions evidence
 
-- Main verification: [run 39592804574](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39592804574) — success; deploy skipped by credential preflight.
+- Main verification: [run 39600035784](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39600035784) — success; deploy skipped by credential preflight.
 - Pull request guard: [run 39593194243](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39593194243) — success; only the `Verify` job, no deploy job.
 - Details and the private-repo Actions billing note: [evidence/github-actions.md](evidence/github-actions.md).
 

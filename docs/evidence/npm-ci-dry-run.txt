@@ -15,4 +15,4 @@ npm warn EBADENGINE   current: { node: 'v24.12.0', npm: '11.6.2' }
 npm warn EBADENGINE }
 
 up to date in 2s
-npm ci dry-run exit=0
+exit=0

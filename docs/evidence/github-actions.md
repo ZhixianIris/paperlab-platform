@@ -4,14 +4,14 @@ Repository: https://github.com/ZhixianIris/paperlab-platform
 
 ## Main verification — PASS
 
-- Commit: `24a53b4134bb3ecf15248512d1b3384a4585a0f3`
+- Commit: `35eb82e65c3398c4a27d08939543900494148891`
 - Workflow: **Deploy production** (`.github/workflows/deploy.yml`)
-- Run: https://github.com/ZhixianIris/paperlab-platform/actions/runs/39592804574
+- Run: https://github.com/ZhixianIris/paperlab-platform/actions/runs/39600035784
 - Result: `success`
 - Verify job: `success` (~2 min)
 - Verification included: `npm ci`, PostgreSQL 16 service, migrations,
-  23 API/RLS/provider tests, 3 PDF unit tests, 9 Playwright tests, production
-  build, browser-secret scan, licence audit, high-severity npm audit,
+  23 API/RLS/provider tests, 3 PDF unit tests, 10 Playwright tests, production
+  build, browser-secret scan, licence audit (708 packages on Linux), high-severity npm audit,
   `actionlint`-style config checks.
 - Deploy credentials preflight: `success` (reported missing values as warnings).
 - CloudBase deploy job: **skipped** because no `TCB_*`/`PG*` credentials exist.

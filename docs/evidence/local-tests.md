@@ -13,7 +13,7 @@ in a disposable Docker container. CI repeats the same suite on Node 22 / Ubuntu.
 | `npm run test:api` | PASS — 23 API/provider/RLS tests |
 | `npm run build` | PASS |
 | `npm run verify:build` | PASS — 9 assets, no server secret markers/values |
-| `npm run audit:licenses` | PASS — 706 local packages, 0 denied; platform-dependent package count on Linux CI |
+| `npm run audit:licenses` | PASS — 706 local packages / 708 on Linux CI, 0 denied |
 | `npm run audit:security` | PASS at `--audit-level=high`; 2 moderate React Router v6 advisories remain (mitigated, see SECURITY.md) |
 | `npx playwright test` | PASS — 10 browser journeys |
 | `npm run test:e2e` | PASS — rebuild + 10 journeys |

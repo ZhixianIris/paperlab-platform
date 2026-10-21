@@ -7,7 +7,7 @@ jobs, balances, orders, tenants and admin actions live in CloudBase.
 > **Honest delivery status:** all offline code, PostgreSQL migrations, RLS,
 > transaction billing, provider adapter, admin/tenant UI, tests and declarative
 > deployment are implemented. GitHub Actions verification is green
-> ([run 39592804574](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39592804574));
+> ([run 39600035784](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39600035784));
 > the CloudBase **deploy job is skipped** because no environment or credentials
 > were supplied. Therefore there is no production URL and no real
 > CloudBase/AI/payment acceptance result. See
@@ -16,7 +16,7 @@ jobs, balances, orders, tenants and admin actions live in CloudBase.
 > [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md).
 
 - Repository: https://github.com/ZhixianIris/paperlab-platform
-- Verified commit: `24a53b4134bb3ecf15248512d1b3384a4585a0f3`
+- Verified commit: `35eb82e65c3398c4a27d08939543900494148891`
 - PR guard run: https://github.com/ZhixianIris/paperlab-platform/actions/runs/39593194243
   (only CI ran; no deploy job)
 
