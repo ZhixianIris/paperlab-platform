@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowIcon, LockIcon } from './Icons';
 import type { ToolMeta } from '../lib/tools';
+import { tenantScopeMessage, useTenantToolScope } from '../lib/tenantTools';
 
 interface ToolPageShellProps {
   tool: ToolMeta;
@@ -9,7 +10,9 @@ interface ToolPageShellProps {
 }
 
 export function ToolPageShell({ tool, children }: ToolPageShellProps) {
-  const groupPath = tool.group === 'pdf' ? '/pdf' : '/image';
+  const scope = useTenantToolScope();
+  const groupPath = (tool.group === 'pdf' ? '/pdf' : '/image') + scope.query;
+  const allowed = scope.status === 'public' || (scope.status === 'ready' && scope.keys.has(tool.key));
   return (
     <div className="tool-page">
       <div className="tool-topline">
@@ -27,7 +30,15 @@ export function ToolPageShell({ tool, children }: ToolPageShellProps) {
           <p>{tool.short}</p>
         </div>
       </header>
-      <div className="tool-workbench tool-workbench-single">{children}</div>
+      <div className="tool-workbench tool-workbench-single">
+        {allowed ? children : (
+          <div className="notice notice-warn" role={scope.status === 'loading' ? 'status' : 'alert'}>
+            {scope.status === 'ready'
+              ? '此团队空间未启用该工具。你可以联系管理员调整工具开关。'
+              : tenantScopeMessage(scope)}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
