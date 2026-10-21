@@ -5,7 +5,7 @@ import { PNG } from 'pngjs';
 import {
   parsePageOrder, deletePdfPages, reorderPdfPages, insertBlankPages,
   addPageNumbers, cropPdf, editPdfMetadata, imagesToPdf, flattenPdfForms,
-  stampPdf, insertPdfPages, splitPdfByPage, resizePdfPages, nupPdf,
+  stampPdf, insertPdfPages, splitPdfByPage, resizePdfPages, nupPdf, inspectPdfForm, fillPdfForm,
 } from './operations-extended';
 
 async function fixture(pages = 3): Promise<File> {
@@ -103,6 +103,23 @@ describe('local PDF utilities', () => {
     expect(doc.getPage(0).getHeight()).toBeCloseTo(841.89, 1);
     const imposed = await nupPdf(await fixture(3), 2);
     expect((await PDFDocument.load(await imposed.arrayBuffer())).getPageCount()).toBe(2);
+  });
+
+  it('inspects and fills native text and checkbox form fields', async () => {
+    const doc = await PDFDocument.create();
+    const page = doc.addPage([400, 500]);
+    const form = doc.getForm();
+    const name = form.createTextField('fullName');
+    name.addToPage(page);
+    const consent = form.createCheckBox('consent');
+    consent.addToPage(page, { x: 20, y: 20 });
+    const source = new File([await doc.save() as BlobPart], 'form.pdf', { type: 'application/pdf' });
+    const fields = await inspectPdfForm(source);
+    expect(fields.map((field) => field.name)).toEqual(['fullName', 'consent']);
+    const filled = await fillPdfForm(source, { fullName: 'Alice', consent: true });
+    const pdf = await PDFDocument.load(await filled.arrayBuffer());
+    expect(pdf.getForm().getTextField('fullName').getText()).toBe('Alice');
+    expect(pdf.getForm().getCheckBox('consent').isChecked()).toBe(true);
   });
 
   it('flattens AcroForm fields rather than silently claiming other annotations are supported', async () => {
