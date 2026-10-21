@@ -51,6 +51,7 @@ export function toolLabel(key: string): string {
     'pdf.merge': 'PDF 合并',
     'pdf.split': 'PDF 拆分',
     'pdf.rotate': 'PDF 旋转',
+    'pdf.fill': 'PDF 填写表单',
     'pdf.insert': '插入 PDF 页面',
     'pdf.split-pages': 'PDF 逐页拆分',
     'pdf.resize-pages': 'PDF 页面尺寸',
