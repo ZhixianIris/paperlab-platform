@@ -138,8 +138,9 @@ fixture with a generic label; no external model is claimed.
 
 ## GitHub Actions evidence
 
-- Expanded main verification: [run 39611499179](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39611499179) — success; deploy skipped by credential preflight.
-- Pull request guard: [run 39593194243](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39593194243) — success; only the `Verify` job, no deploy job.
+- Wave A+B PR CI: [run 39630410165](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39630410165) — success; 30 API + 19 unit + 45 Playwright; no deploy job.
+- Merged main verification: [run 39631026730](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39631026730) — success; deploy skipped by credential preflight.
+- Final docs CI: [run 39631683556](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39631683556) — success; deploy skipped.
 - Details and the private-repo Actions billing note: [evidence/github-actions.md](evidence/github-actions.md).
 
 ## Failures
