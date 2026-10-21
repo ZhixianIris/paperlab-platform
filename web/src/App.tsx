@@ -13,6 +13,8 @@ import { PdfMergePage } from './pages/PdfMergePage';
 import { PdfSplitPage } from './pages/PdfSplitPage';
 import { PdfRotatePage } from './pages/PdfRotatePage';
 import { PdfUtilityPage } from './pages/PdfUtilityPage';
+import { ImageUtilityPage } from './pages/ImageUtilityPage';
+import { PdfUtilityPage } from './pages/PdfUtilityPage';
 import { ImageCropPage } from './pages/ImageCropPage';
 import { ImageResizePage } from './pages/ImageResizePage';
 import { ImageConvertPage } from './pages/ImageConvertPage';
@@ -40,11 +42,13 @@ export function App() {
             <Route path="pdf/split" element={<PdfSplitPage />} />
             <Route path="pdf/rotate" element={<PdfRotatePage />} />
             <Route path="pdf/:utility" element={<PdfUtilityPage />} />
+            <Route path="pdf/:utility" element={<PdfUtilityPage />} />
             <Route path="image" element={<ToolWorkbenchPage kind="image" />} />
             <Route path="image/crop" element={<ImageCropPage />} />
             <Route path="image/resize" element={<ImageResizePage />} />
             <Route path="image/convert" element={<ImageConvertPage />} />
             <Route path="image/compress" element={<ImageCompressPage />} />
+            <Route path="image/:utility" element={<ImageUtilityPage />} />
             <Route path="ai" element={<ToolWorkbenchPage kind="ai" />} />
             <Route path="ai/image" element={<AiPage />} />
             <Route path="login" element={<LoginPage />} />
