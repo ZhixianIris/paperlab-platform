@@ -214,3 +214,83 @@ export async function flattenPdfForms(file: File): Promise<File> {
   form.flatten();
   return asFile(await pdf.save(), `${baseName(file.name)}-flattened.pdf`);
 }
+
+
+export async function insertPdfPages(file: File, addition: File, afterPage: number, range: string): Promise<File> {
+  const pdf = await loadPdf(file);
+  const source = await loadPdf(addition);
+  if (!Number.isInteger(afterPage) || afterPage < 0 || afterPage > pdf.getPageCount()) {
+    throw new Error('插入位置无效');
+  }
+  const selected = parsePageRanges(range, source.getPageCount());
+  if (selected.length > 100) throw new Error('一次最多插入 100 页');
+  const copied = await pdf.copyPages(source, selected.map((number) => number - 1));
+  copied.forEach((page, index) => pdf.insertPage(afterPage + index, page));
+  return asFile(await pdf.save(), `${baseName(file.name)}-inserted.pdf`);
+}
+
+export async function splitPdfByPage(file: File, range: string): Promise<File[]> {
+  const source = await loadPdf(file);
+  const selected = parsePageRanges(range, source.getPageCount());
+  if (selected.length > 50) throw new Error('每次最多拆分 50 个单页文件');
+  const result: File[] = [];
+  for (const number of selected) {
+    const pdf = await PDFDocument.create();
+    const [page] = await pdf.copyPages(source, [number - 1]);
+    pdf.addPage(page);
+    result.push(asFile(await pdf.save(),
+      `${baseName(file.name)}-page-${String(number).padStart(3, '0')}.pdf`));
+  }
+  return result;
+}
+
+export async function resizePdfPages(
+  file: File, paper: 'a4' | 'a3' | 'letter', orientation: 'portrait' | 'landscape',
+): Promise<File> {
+  const dimensions = paper === 'a3' ? [841.89, 1190.55] :
+    paper === 'letter' ? [612, 792] : [595.28, 841.89];
+  const [width, height] = orientation === 'landscape' ? [dimensions[1], dimensions[0]] : dimensions;
+  const pdf = await loadPdf(file);
+  for (const page of pdf.getPages()) {
+    const old = page.getSize();
+    const scale = Math.min(width / old.width, height / old.height);
+    const dx = (width - old.width * scale) / 2;
+    const dy = (height - old.height * scale) / 2;
+    page.scaleContent(scale, scale);
+    page.scaleAnnotations(scale, scale);
+    page.translateContent(dx, dy);
+    page.setSize(width, height);
+  }
+  return asFile(await pdf.save(), `${baseName(file.name)}-${paper}-resized.pdf`);
+}
+
+export async function nupPdf(file: File, layout: 2 | 4): Promise<File> {
+  if (layout !== 2 && layout !== 4) throw new Error('仅支持 2 合 1 或 4 合 1');
+  const source = await loadPdf(file);
+  const output = await PDFDocument.create();
+  // Each source page is embedded as a vector PDF XObject rather than an image.
+  const pages = await output.embedPdf(new Uint8Array(await file.arrayBuffer()));
+  const cols = 2;
+  const rows = layout === 2 ? 1 : 2;
+  const width = layout === 2 ? 841.89 : 595.28;
+  const height = layout === 2 ? 595.28 : 841.89;
+  const margin = 22;
+  const gap = 10;
+  const cellWidth = (width - 2 * margin - gap * (cols - 1)) / cols;
+  const cellHeight = (height - 2 * margin - gap * (rows - 1)) / rows;
+  for (let i = 0; i < pages.length; i += layout) {
+    const sheet = output.addPage([width, height]);
+    for (let slot = 0; slot < layout && i + slot < pages.length; slot += 1) {
+      const src = pages[i + slot];
+      const col = slot % cols;
+      const row = Math.floor(slot / cols);
+      const scale = Math.min(cellWidth / src.width, cellHeight / src.height);
+      const w = src.width * scale;
+      const h = src.height * scale;
+      const x = margin + col * (cellWidth + gap) + (cellWidth - w) / 2;
+      const y = height - margin - (row + 1) * cellHeight - row * gap + (cellHeight - h) / 2;
+      sheet.drawPage(src, { x, y, width: w, height: h });
+    }
+  }
+  return asFile(await output.save(), `${baseName(file.name)}-${layout}up.pdf`);
+}
