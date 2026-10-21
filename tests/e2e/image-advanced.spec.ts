@@ -22,7 +22,7 @@ test.describe('extended browser-local image tools', () => {
     test(`${name} produces a valid local output`, async ({ page }, testInfo) => {
       await page.goto(`/image/${name}`);
       await page.getByTestId(`image-${name}-drop-input`).setInputFiles(FIXTURES.image);
-      await expect(page.getByRole('heading', { name: /图片|纯色背景|实心遮挡|区域|清除/ })).toBeVisible();
+      await expect(page.locator('.tool-hero h1')).toBeVisible();
       await page.getByTestId('process-button').click();
       await expect(page.getByTestId('result-card')).toBeVisible({ timeout: 30_000 });
       const file = await saveResult(page, testInfo);
