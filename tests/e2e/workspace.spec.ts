@@ -46,7 +46,7 @@ async function textOfPdf(file: string): Promise<string> {
 test.describe('natural-language local workspace', () => {
   test('E01 offline delete page 2 then rotate remaining pages preserves 4 pages and the text layer', async ({ page, context }, testInfo) => {
     await page.goto('/ai');
-    await expect(page.getByRole('heading', { name: '文件工作台' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '我们从哪里开始？' })).toBeVisible();
     const httpRequests: string[] = [];
     page.on('request', (request) => {
       if (/^https?:/.test(request.url())) httpRequests.push(request.url());
@@ -64,6 +64,10 @@ test.describe('natural-language local workspace', () => {
     await expect(page.getByTestId('ai-plan-card')).toContainText('PDF 旋转');
     await page.getByTestId('ai-plan-execute').click();
     await expect(page.getByTestId('ai-stage')).toContainText('结果可预览', { timeout: 30_000 });
+    await expect(page.getByTestId('ai-preview')).toHaveCount(0);
+    await page.locator('.chat-file-main').last().click();
+    await expect(page.getByTestId('ai-preview')).toBeVisible();
+    await page.getByTestId('ai-preview-close').click();
 
     const target = await downloadCurrent(page, testInfo, 'workspace-offline-result.pdf');
     const document = await PDFDocument.load(await fs.readFile(target));
@@ -134,7 +138,7 @@ test.describe('natural-language local workspace', () => {
     await page.getByTestId('ai-drop-input').setInputFiles(FIXTURES.image);
     await page.getByTestId('ai-command').fill('帮我处理一下这个文件');
     await page.getByTestId('ai-command-send').click();
-    await expect(page.locator('.chat-messages').getByText(/还不能确定|需要补充|不清楚/)).toBeVisible();
+    await expect(page.locator('.ai-thread').getByText(/还不能确定|需要补充|不清楚/)).toBeVisible();
     await expect(page.getByTestId('ai-plan-card')).toHaveCount(0);
     await expect(page.getByTestId('ai-plan-execute')).toHaveCount(0);
   });
@@ -143,6 +147,9 @@ test.describe('natural-language local workspace', () => {
     await page.goto('/ai');
     await page.getByTestId('ai-drop-input').setInputFiles(FIXTURES.image);
     await expect(page.locator('.file-row')).toHaveCount(1);
+    await page.getByTestId('ai-command').fill('压缩图片');
+    await page.getByTestId('ai-command-send').click();
+    await expect(page.getByTestId('ai-plan-card')).toBeVisible();
     await page.getByTestId('ai-save-draft').click();
     await expect(page.getByTestId('ai-draft-list')).toBeVisible();
     await expect(page.getByTestId('ai-draft-list')).toContainText('sample-image.png');
@@ -160,7 +167,7 @@ test.describe('natural-language local workspace', () => {
   test('E06 cloud planning sends only prompt and metadata and then executes in the browser', async ({ page, request }, testInfo) => {
     await resetData(request);
     await loginAs(page, USERS.alice, '/ai?tenant=alpha');
-    await expect(page.getByRole('heading', { name: '文件工作台' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '我们从哪里开始？' })).toBeVisible();
     const planBodies: string[] = [];
     page.on('request', (incoming) => {
       if (incoming.url().includes('/platform-api') && incoming.postData()?.includes('"ai.plan"')) {
@@ -209,7 +216,7 @@ test.describe('natural-language local workspace', () => {
     await page.getByTestId('ai-drop-input').setInputFiles(FIXTURES.image);
     await page.getByTestId('ai-command').fill('帮我审美一下这张图');
     await page.getByTestId('ai-command-send').click();
-    await expect(page.locator('.chat-messages')).toContainText('云端规划暂时不可用');
+    await expect(page.locator('.ai-thread')).toContainText('云端规划暂时不可用');
     await expect(page.getByTestId('ai-plan-card')).toHaveCount(0);
 
     await page.getByTestId('ai-command').fill('压缩图片');
@@ -259,7 +266,7 @@ test.describe('natural-language local workspace', () => {
     await page.getByTestId('ai-drop-input').setInputFiles(FIXTURES.alphaPdf);
     await page.getByTestId('ai-command').fill('把第2页拿掉');
     await page.getByTestId('ai-command-send').click();
-    await expect(page.locator('.chat-messages')).toContainText('不允许的工具');
+    await expect(page.locator('.ai-thread')).toContainText('不允许的工具');
     await expect(page.getByTestId('ai-plan-card')).toHaveCount(0);
     await expect(page.getByTestId('ai-plan-execute')).toHaveCount(0);
   });

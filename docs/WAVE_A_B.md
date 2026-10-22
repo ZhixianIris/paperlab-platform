@@ -6,7 +6,7 @@ versions) is deliberately not part of this change.
 
 ## Product behaviour
 
-`/ai` is now one chat-style workspace instead of a workbench card page:
+`/ai` is now a ChatGPT-style, chat-first workspace instead of a workbench card page. The empty state is centered around “我们从哪里开始？” with one composer; files are attachments inside that composer, not a separate drop zone. A preview drawer opens only after a file card in the conversation is clicked. Image generation opens as a modal on the same page, not a second page.
 
 1. Upload one or more PDFs/images (up to 4).
 2. Enter a Chinese instruction.
@@ -26,8 +26,20 @@ The existing `/ai/image` generator remains reachable through the same page's
 "生成图片" tab. It reuses the existing model, wallet and job APIs. Generated
 images can be passed into the local file workflow.
 
+The ChatLayout / WelcomeMessage interaction model is adapted from
+[@ant-design/agentic-ui](https://github.com/antdigital-ai/agentic-ui) at commit
+`685f0a4bc14e2ef1a736a678eedd9fdc2a7a5f95` (MIT). The upstream package's
+antd/React 19 runtime is not bundled; see
+[third_party/agentic-ui/SOURCE.md](../third_party/agentic-ui/SOURCE.md).
+
 ## Architecture
 
+- `web/src/features/chat/ChatLayout.tsx` — dependency-free ChatLayout /
+  WelcomeMessage interaction adaptation.
+- `web/src/features/chat/ChatComposer.tsx` — composer-integrated paperclip
+  attachment picker, pending attachment chips and send controls.
+- `web/src/features/chat/FilePreviewDrawer.tsx` — preview drawer opened from a
+  conversation file card (PDF result/original toggle, image before/after).
 - `web/src/features/workspace/fileRegistry.ts` — random file IDs, File objects,
   metadata only.
 - `web/src/features/workspace/inspect.ts` — PDF page count/text-layer detection

@@ -141,6 +141,11 @@ dda3a240772459035eb38b14c5c7d94e81626116, MIT licensed. The original MIT
 license is preserved at third_party/omni-tools/LICENSE; modifications are
 documented in third_party/omni-tools/SOURCE.md.
 
+The ChatLayout/WelcomeMessage interaction pattern is adapted from
+**@ant-design/agentic-ui** (https://github.com/antdigital-ai/agentic-ui) at
+commit 685f0a4bc14e2ef1a736a678eedd9fdc2a7a5f95, MIT licensed. No upstream
+package or antd runtime is bundled. See third_party/agentic-ui/SOURCE.md.
+
 No AGPL, GPL, SSPL, BUSL, Commons Clause or unreviewed production-license
 component is used. If a future dependency introduces one, "audit:licenses"
 fails CI.

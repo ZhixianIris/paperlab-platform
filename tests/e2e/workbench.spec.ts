@@ -32,9 +32,9 @@ test.describe('workbenches', () => {
     await expect(page.locator('.workbench-head')).toHaveCount(0);
 
     await page.goto('/ai');
-    await expect(page.getByRole('heading', { name: '文件工作台' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '我们从哪里开始？' })).toBeVisible();
     await expect(page.getByTestId('ai-command')).toBeVisible();
-    await page.getByTestId('ai-mode-image').click();
+    await page.getByTestId('ai-image-open').click();
     await expect(page.getByRole('heading', { name: '登录后使用 AI 出图' })).toBeVisible();
   });
 });

@@ -4,25 +4,17 @@ import {
   useMemo,
   useRef,
   useState,
-  type KeyboardEvent,
 } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { callPlatformApi } from '../lib/api';
 import { useToast } from '../components/Toast';
-import { FileDrop } from '../components/FileDrop';
-import { PdfPreview } from '../components/PdfPreview';
-import { BeforeAfter } from '../features/tools/image/BeforeAfter';
-import { useObjectUrl } from '../features/tools/image/useObjectUrl';
-import { downloadFile } from '../lib/download';
+import { DownloadIcon, FileIcon, RefreshIcon, SparklesIcon, TrashIcon } from '../components/Icons';
+import { ChatLayout, WelcomeMessage } from '../features/chat/ChatLayout';
+import { ChatComposer, type ComposerFile } from '../features/chat/ChatComposer';
+import { FilePreviewDrawer, type PreviewTarget } from '../features/chat/FilePreviewDrawer';
 import { formatBytes } from '../lib/format';
-import {
-  DownloadIcon,
-  FileIcon,
-  RefreshIcon,
-  SparklesIcon,
-  TrashIcon,
-} from '../components/Icons';
+import { downloadFile } from '../lib/download';
 import type {
   AssistantPlan,
   ExecuteResult,
@@ -55,7 +47,6 @@ import {
 } from '../features/workspace/storage';
 import { ImageStudioPanel } from './ImageStudioPanel';
 
-type Mode = 'files' | 'image';
 type Stage =
   | 'empty'
   | 'file_ready'
@@ -75,6 +66,8 @@ interface ChatItem {
   kind?: 'plan' | 'result' | 'error';
   plan?: AssistantPlan;
   manualPath?: string;
+  attachments?: WorkspaceFileMeta[];
+  results?: WorkspaceFileMeta[];
 }
 
 const STAGE_LABELS: Record<Stage, string> = {
@@ -94,18 +87,12 @@ function id(): string {
   return crypto.randomUUID();
 }
 
-function modeFromSearch(value: string | null): Mode {
-  return value === 'image' ? 'image' : 'files';
-}
-
-export function AiPage({ initialMode = 'files' }: { initialMode?: Mode }) {
+export function AiPage({ initialMode = 'files' }: { initialMode?: 'files' | 'image' }) {
   const { status, session } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const { push } = useToast();
   const memberships = useMemo(() => session?.memberships ?? [], [session]);
-  const [mode, setMode] = useState<Mode>(() => (
-    initialMode === 'image' ? 'image' : modeFromSearch(searchParams.get('mode'))
-  ));
+  const [imageOpen, setImageOpen] = useState(initialMode === 'image');
   const [selectedTenantId, setSelectedTenantId] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [metas, setMetas] = useState<WorkspaceFileMeta[]>([]);
@@ -122,8 +109,9 @@ export function AiPage({ initialMode = 'files' }: { initialMode?: Mode }) {
   const [drafts, setDrafts] = useState<DraftRecord[]>([]);
   const [draftId, setDraftId] = useState<string | undefined>();
   const [draftBusy, setDraftBusy] = useState(false);
+  const [pending, setPending] = useState<ComposerFile[]>([]);
+  const [previewTarget, setPreviewTarget] = useState<PreviewTarget | null>(null);
   const registryRef = useRef(new FileRegistry());
-  const chatEndRef = useRef<HTMLDivElement>(null);
 
   const selectedMembership = memberships.find((item) => item.tenantId === selectedTenantId) ?? null;
   const ownerKey = session?.user.id || 'anonymous';
@@ -143,14 +131,6 @@ export function AiPage({ initialMode = 'files' }: { initialMode?: Mode }) {
     });
   }, [status, memberships, searchParams]);
 
-  useEffect(() => {
-    setMode(initialMode === 'image' ? 'image' : modeFromSearch(searchParams.get('mode')));
-  }, [initialMode, searchParams]);
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }, [messages, activePlan]);
-
   const loadDraftList = useCallback(async () => {
     try {
       setDrafts(await listDrafts(ownerKey, tenantKey));
@@ -167,14 +147,6 @@ export function AiPage({ initialMode = 'files' }: { initialMode?: Mode }) {
     setMessages((current) => [...current, { ...item, id: id() }]);
   }
 
-  function changeMode(next: Mode) {
-    setMode(next);
-    const params = new URLSearchParams(searchParams);
-    if (next === 'image') params.set('mode', 'image');
-    else params.delete('mode');
-    setSearchParams(params, { replace: true });
-  }
-
   function chooseTenant(nextTenantId: string) {
     setSelectedTenantId(nextTenantId);
     const membership = memberships.find((item) => item.tenantId === nextTenantId);
@@ -183,38 +155,26 @@ export function AiPage({ initialMode = 'files' }: { initialMode?: Mode }) {
     setSearchParams(params, { replace: true });
   }
 
-  async function handleFiles(nextFiles: File[]) {
-    if (nextFiles.length > 4) {
+  async function attachFiles(nextFiles: File[]) {
+    if (pending.length + nextFiles.length > 4) {
       setError('一次最多选择 4 个文件');
-      return;
-    }
-    if (nextFiles.length === 0) {
-      setFiles([]);
-      setMetas([]);
-      setStage('empty');
-      setError('');
       return;
     }
     setBusy(true);
     setError('');
     try {
-      const nextMetas: WorkspaceFileMeta[] = [];
+      const additions: ComposerFile[] = [];
       for (const file of nextFiles) {
-        nextMetas.push(await registryRef.current.add(file, 'upload'));
+        const meta = await registryRef.current.add(file, 'upload');
+        additions.push({ file, meta });
       }
-      const firstLoad = metas.length === 0;
-      setFiles(nextFiles);
-      setMetas(nextMetas);
-      if (!originalFile && nextFiles[0]) setOriginalFile(nextFiles[0]);
+      setPending((current) => {
+        const seen = new Set(current.map((item) => item.meta.fileId));
+        return [...current, ...additions.filter((item) => !seen.has(item.meta.fileId))];
+      });
       setStage('file_ready');
       setActivePlan(null);
       setPlanState('idle');
-      if (firstLoad) {
-        addMessage({
-          role: 'assistant',
-          text: `已读取 ${nextMetas.length} 个文件。${nextMetas.map((meta) => `${meta.name}（${describeFile(meta)}）`).join('；')}。直接输入中文指令即可。`,
-        });
-      }
     } catch (inspectError) {
       setError(inspectError instanceof Error ? inspectError.message : '无法读取文件');
       setStage('failed');
@@ -223,7 +183,11 @@ export function AiPage({ initialMode = 'files' }: { initialMode?: Mode }) {
     }
   }
 
-  function showPlan(outcome: PlanOutcome) {
+  function removePending(fileId: string) {
+    setPending((current) => current.filter((item) => item.meta.fileId !== fileId));
+  }
+
+  function showPlan(outcome: PlanOutcome, planMetas: WorkspaceFileMeta[] = metas) {
     if (outcome.kind !== 'plan') {
       addMessage({
         role: 'assistant',
@@ -236,7 +200,7 @@ export function AiPage({ initialMode = 'files' }: { initialMode?: Mode }) {
       return;
     }
     try {
-      const validated = validatePlan(outcome, metas);
+      const validated = validatePlan(outcome, planMetas);
       setActivePlan(validated.plan);
       setPlanSteps(validated.plan.steps.map((step) => ({
         toolKey: step.toolKey,
@@ -269,7 +233,7 @@ export function AiPage({ initialMode = 'files' }: { initialMode?: Mode }) {
     }
   }
 
-  async function requestCloudPlan(text: string) {
+  async function requestCloudPlan(text: string, planMetas: WorkspaceFileMeta[]) {
     if (!selectedMembership) {
       addMessage({ role: 'assistant', text: '复杂指令需要登录并选择空间；基础本地指令仍可直接使用。' });
       setStage('needs_clarification');
@@ -287,9 +251,9 @@ export function AiPage({ initialMode = 'files' }: { initialMode?: Mode }) {
         tenantId: selectedTenantId,
         requestId: id(),
         prompt: text,
-        files: metas.map(plannerMetadata),
+        files: planMetas.map(plannerMetadata),
       });
-      showPlan(outcome);
+      showPlan(outcome, planMetas);
     } catch (cloudError) {
       const message = cloudError instanceof Error ? cloudError.message : '复杂指令暂时无法解析';
       addMessage({ role: 'assistant', text: `${message} 基础本地指令仍可使用。` });
@@ -302,28 +266,40 @@ export function AiPage({ initialMode = 'files' }: { initialMode?: Mode }) {
   async function submitCommand() {
     const text = input.trim();
     if (!text) return;
-    if (metas.length === 0) {
+    const attached = pending.map((item) => item.meta);
+    const merged = new Map<string, ComposerFile>();
+    for (const item of [...files.map((file, index) => ({ file, meta: metas[index] })), ...pending]) {
+      if (item.meta) merged.set(item.meta.fileId, item as ComposerFile);
+    }
+    const sent = [...merged.values()];
+    if (sent.length === 0) {
       setError('请先上传 PDF 或图片');
       return;
     }
+    const sentMetas = sent.map((item) => item.meta);
+    const sentFiles = sent.map((item) => item.file);
     setInput('');
+    setPending([]);
+    setFiles(sentFiles);
+    setMetas(sentMetas);
+    if (!originalFile) setOriginalFile(sentFiles[0] ?? null);
     setActivePlan(null);
     setPlanState('idle');
     setError('');
-    addMessage({ role: 'user', text });
-    const local = parseLocalIntent(text, metas);
+    addMessage({ role: 'user', text, attachments: attached.length ? attached : sentMetas.length === 1 && files.length === 0 ? sentMetas : [] });
+    const local = parseLocalIntent(text, sentMetas);
     if (local.kind === 'plan') {
-      showPlan(local);
+      showPlan(local, sentMetas);
       return;
     }
     if (local.kind === 'needs_clarification' && local.manualPath) {
-      showPlan(local);
+      showPlan(local, sentMetas);
       return;
     }
     if (plannerConfigured && selectedMembership) {
-      await requestCloudPlan(text);
+      await requestCloudPlan(text, sentMetas);
     } else {
-      showPlan(local);
+      showPlan(local, sentMetas);
     }
   }
 
@@ -353,8 +329,9 @@ export function AiPage({ initialMode = 'files' }: { initialMode?: Mode }) {
       setPlanState('done');
       addMessage({
         role: 'assistant',
-        text: `已在本机完成 ${result.files.length} 个结果文件。可以继续输入指令，或下载当前结果。`,
+        text: `已完成 ${result.files.length} 个结果文件。点击文件可预览，或继续输入指令。`,
         kind: 'result',
+        results: result.metas,
       });
     } catch (planError) {
       setCheckpoints((current) => current.slice(0, -1));
@@ -388,7 +365,9 @@ export function AiPage({ initialMode = 'files' }: { initialMode?: Mode }) {
   }
 
   async function saveLocalDraft() {
-    if (files.length === 0) {
+    const draftFiles = files.length ? files : pending.map((item) => item.file);
+    const draftMetas = metas.length ? metas : pending.map((item) => item.meta);
+    if (draftFiles.length === 0) {
       setError('请先添加文件');
       return;
     }
@@ -398,11 +377,11 @@ export function AiPage({ initialMode = 'files' }: { initialMode?: Mode }) {
       const record = await saveDraft({
         ownerKey,
         tenantKey,
-        title: files[0]?.name || '文件工作台草稿',
+        title: draftFiles[0]?.name || 'PaperLab 草稿',
         stage,
         messages,
-        files,
-        metas,
+        files: draftFiles,
+        metas: draftMetas,
         draftId,
       });
       setDraftId(record.id);
@@ -427,11 +406,13 @@ export function AiPage({ initialMode = 'files' }: { initialMode?: Mode }) {
       setMetas(restoredMetas);
       setOriginalFile(restoredFiles[0] ?? null);
       setMessages(Array.isArray(record.messages) ? record.messages as ChatItem[] : []);
+      setPending([]);
+      setPreviewTarget(null);
       setDraftId(record.id);
       setActivePlan(null);
       setPlanState('idle');
       setStage(record.stage as Stage);
-      addMessage({ role: 'assistant', text: '已从本机恢复草稿。' });
+      addMessage({ role: 'assistant', text: '已从本机恢复草稿。', attachments: restoredMetas });
     } catch (restoreError) {
       setError(restoreError instanceof Error ? restoreError.message : '无法恢复草稿');
     } finally {
@@ -464,190 +445,147 @@ export function AiPage({ initialMode = 'files' }: { initialMode?: Mode }) {
     setMetas([meta]);
     setOriginalFile(file);
     setStage('file_ready');
-    addMessage({ role: 'assistant', text: '生成图片已加入文件工作台，可以继续用本地工具处理。' });
-    changeMode('files');
+    setPending([]);
+    setImageOpen(false);
+    addMessage({ role: 'assistant', text: '图片已生成并加入当前对话，可以继续用本地工具处理。' });
   }
 
-  function onComposerKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
-      void submitCommand();
-    }
+  const chatStarted = messages.length > 0 || files.length > 0 || Boolean(activePlan);
+  const currentRepresented = messages.some((message) => (message.attachments?.length ?? 0) > 0 || (message.results?.length ?? 0) > 0);
+  const canSend = Boolean(input.trim()) && (pending.length > 0 || files.length > 0);
+
+  function openPreview(meta: WorkspaceFileMeta, compare = false) {
+    const file = registryRef.current.get(meta.fileId);
+    if (!file) return;
+    setPreviewTarget({ file, meta, originalFile, showCompare: compare });
   }
 
-  if (mode === 'image') {
-    if (status === 'loading') return <div className="page-loading">正在加载…</div>;
-    if (status !== 'authenticated' || !session) {
-      return (
-        <div className="empty-page">
-          <SparklesIcon size={44} />
-          <h1>登录后使用 AI 出图</h1>
-          <p>PDF 和图片工具无需登录。</p>
-          <Link to="/login?next=/ai/image" className="button button-accent">登录</Link>
-        </div>
-      );
-    }
-    return (
-      <div className="ai-workspace" data-testid="ai-workspace">
-        <header className="ai-workspace-head">
-          <div>
-            <h1>AI 出图</h1>
-            <p>描述画面，生成后可以继续用本地工具处理。</p>
-          </div>
-          <div className="ai-head-actions">
-            <ModeTabs mode={mode} onChange={changeMode} />
-            <TenantSelect memberships={memberships} value={selectedTenantId} onChange={chooseTenant} />
-          </div>
-        </header>
-        {memberships.length === 0 ? (
-          <div className="empty-page"><h1>还没有空间</h1><p>请联系空间管理员邀请你加入。</p><Link to="/account" className="button button-ghost">查看账户</Link></div>
-        ) : selectedTenantId ? (
-          <ImageStudioPanel tenantId={selectedTenantId} onUseFile={useGeneratedFile} />
-        ) : <div className="page-loading">正在读取空间…</div>}
-      </div>
-    );
-  }
+  const composer = (
+    <div className="ai-composer-shell">
+      {error ? <div className="ai-inline-error" role="alert" data-testid="ai-workspace-error">{error}</div> : null}
+      <ChatComposer
+        input={input}
+        onInput={setInput}
+        attachments={pending}
+        onFiles={(next) => void attachFiles(next)}
+        onRemove={removePending}
+        onSend={() => void submitCommand()}
+        busy={busy}
+        canSend={canSend}
+        hint={plannerConfigured && selectedMembership ? '复杂指令会发送指令和文件信息到云端规划。' : undefined}
+      />
+    </div>
+  );
 
   return (
-    <div className="ai-workspace" data-testid="ai-workspace">
-      <header className="ai-workspace-head">
-        <div>
-          <h1>文件工作台</h1>
-          <p>上传 PDF 或图片，用中文描述要做什么。</p>
-        </div>
-        <div className="ai-head-actions">
-          <ModeTabs mode={mode} onChange={changeMode} />
-          {memberships.length > 0 ? (
-            <TenantSelect memberships={memberships} value={selectedTenantId} onChange={chooseTenant} />
+    <div className={`ai-chat-page ${chatStarted ? 'is-chat' : `is-home${pending.length > 0 ? ' has-pending' : ''}`}`} data-testid="ai-workspace">
+      <header className="ai-session-bar">
+        <div className="ai-session-left">
+          {chatStarted ? (
+            <button type="button" className="ai-new-chat" onClick={() => {
+              setMessages([]);
+              setFiles([]);
+              setMetas([]);
+              setPending([]);
+              setOriginalFile(null);
+              setActivePlan(null);
+              setPlanSteps([]);
+              setPlanState('idle');
+              setCheckpoints([]);
+              setDraftId(undefined);
+              setPreviewTarget(null);
+              setStage('empty');
+            }} data-testid="ai-new-chat"><TrashIcon size={15} /> 新对话</button>
           ) : null}
+          {memberships.length > 0 ? <TenantSelect memberships={memberships} value={selectedTenantId} onChange={chooseTenant} /> : null}
+        </div>
+        <div className="ai-session-actions">
           <span className={`stage-pill stage-${stage}`} data-testid="ai-stage">{STAGE_LABELS[stage]}</span>
+          <button type="button" className="ai-tool-button" onClick={() => setImageOpen(true)} data-testid="ai-mode-image">生成图片</button>
+          <button type="button" className="ai-tool-button" onClick={undo} disabled={checkpoints.length === 0 || busy} data-testid="ai-undo"><RefreshIcon size={14} /> 撤销</button>
+          <button type="button" className="ai-tool-button" onClick={() => void saveLocalDraft()} disabled={(files.length === 0 && pending.length === 0) || draftBusy || !storageSupported()} data-testid="ai-save-draft">保存草稿</button>
         </div>
       </header>
 
-      <div className="ai-workspace-grid">
-        <section className="ai-chat-panel">
-          <div className="ai-chat-scroll">
-            <FileDrop
-              accept="application/pdf,.pdf,image/png,image/jpeg,image/webp"
-              multiple
-              files={files}
-              onChange={(next) => void handleFiles(next)}
-              title="拖入 PDF 或图片"
-              testId="ai-drop"
-            />
-
-            {drafts.length > 0 ? (
-              <div className="workspace-drafts" data-testid="ai-draft-list">
-                <div className="workspace-section-head"><strong>本机草稿</strong><button type="button" className="text-button" onClick={() => void clearLocalDrafts()} disabled={draftBusy} data-testid="ai-clear-drafts">清空</button></div>
-                {drafts.map((draft) => (
-                  <div className="workspace-draft-row" key={draft.id}>
-                    <button type="button" className="workspace-draft-main" onClick={() => void restoreDraft(draft)} data-testid="ai-restore-draft">
-                      <span>{draft.title}</span>
-                      <small>{new Date(draft.updatedAt).toLocaleString('zh-CN')}</small>
-                    </button>
-                    <button type="button" className="icon-button" aria-label="删除草稿" onClick={() => void removeDraft(draft)}><TrashIcon size={14} /></button>
-                  </div>
-                ))}
+      {!chatStarted ? (
+        <div className="ai-home">
+          <WelcomeMessage title="我们从哪里开始？" />
+          {composer}
+          <div className="ai-suggestions">
+            <button type="button" onClick={() => setInput('删除 PDF 第 2 页并旋转 90 度')}>
+              <FileIcon size={18} /><span>删除 PDF 第 2 页并旋转</span>
+            </button>
+            <button type="button" onClick={() => setInput('给图片加水印并压缩')}>
+              <SparklesIcon size={18} /><span>给图片加水印并压缩</span>
+            </button>
+            <button type="button" onClick={() => setImageOpen(true)} data-testid="ai-image-open">
+              <SparklesIcon size={18} /><span>生成一张图片</span>
+            </button>
+          </div>
+          {drafts.length > 0 ? <DraftPanel drafts={drafts} busy={draftBusy} onRestore={(draft) => void restoreDraft(draft)} onRemove={(draft) => void removeDraft(draft)} onClear={() => void clearLocalDrafts()} /> : null}
+        </div>
+      ) : (
+        <ChatLayout className="ai-chat-layout" footer={composer}>
+          <div className="ai-thread">
+            {drafts.length > 0 ? <DraftPanel drafts={drafts} busy={draftBusy} onRestore={(draft) => void restoreDraft(draft)} onRemove={(draft) => void removeDraft(draft)} onClear={() => void clearLocalDrafts()} /> : null}
+            {files.length > 0 && !currentRepresented ? (
+              <div className="ai-current-files" data-testid="ai-current-files">
+                {files.map((file, index) => {
+                  const meta = metas[index];
+                  return meta ? <ChatFileRow key={meta.fileId} file={file} meta={meta} onPreview={() => openPreview(meta)} onDownload={undefined} /> : null;
+                })}
               </div>
             ) : null}
-
-            {messages.length === 0 ? (
-              <div className="workspace-welcome">
-                <SparklesIcon size={28} />
-                <h2>说一句，文件就位</h2>
-                <p>例如“删除第 2 页，再旋转剩余页面 90 度”，或者“给这张图片加右下角水印后压缩”。</p>
-                <div className="suggestion-row">
-                  {['删除第 2 页并旋转 90°', '提取 PDF 文字', '压缩图片', '转成 PNG'].map((suggestion) => (
-                    <button key={suggestion} type="button" className="suggestion-chip" onClick={() => setInput(suggestion)}>{suggestion}</button>
-                  ))}
+            {messages.map((message) => (
+              <div key={message.id} className={`chat-message ${message.role}`}>
+                <div className={`chat-bubble ${message.kind ?? ''}`}>
+                  <p>{message.text}</p>
+                  {message.attachments?.length ? (
+                    <div className="chat-file-list">
+                      {message.attachments.map((meta) => {
+                        const file = registryRef.current.get(meta.fileId);
+                        return file ? <ChatFileRow key={meta.fileId} file={file} meta={meta} onPreview={() => openPreview(meta)} onDownload={undefined} /> : null;
+                      })}
+                    </div>
+                  ) : null}
+                  {message.kind === 'plan' && message.plan ? (
+                    <PlanCard
+                      plan={message.plan}
+                      fileNames={registryRef.current.getMetas(message.plan.fileIds).map((meta) => meta.name)}
+                      steps={activePlan === message.plan ? planSteps : []}
+                      state={activePlan === message.plan ? planState : 'idle'}
+                      interactive={activePlan === message.plan}
+                      onExecute={() => void runPlan()}
+                      onCancel={cancelPlan}
+                    />
+                  ) : null}
+                  {message.results?.length ? (
+                    <div className="chat-file-list result-list">
+                      {message.results.map((meta) => {
+                        const file = registryRef.current.get(meta.fileId);
+                        return file ? <ChatFileRow key={meta.fileId} file={file} meta={meta} onPreview={() => openPreview(meta, true)} onDownload={() => downloadFile(file)} /> : null;
+                      })}
+                    </div>
+                  ) : null}
+                  {message.manualPath ? <Link className="text-link" to={message.manualPath}>打开手动工具 →</Link> : null}
                 </div>
               </div>
-            ) : null}
-
-            <div className="chat-messages">
-              {messages.map((message) => (
-                <div key={message.id} className={`chat-message ${message.role}`}>
-                  <div className={`chat-bubble ${message.kind ?? ''}`}>
-                    <p>{message.text}</p>
-                    {message.kind === 'plan' && message.plan ? (
-                      <PlanCard
-                        plan={message.plan}
-                        fileNames={metas.filter((meta) => message.plan?.fileIds.includes(meta.fileId)).map((meta) => meta.name)}
-                        steps={activePlan === message.plan ? planSteps : []}
-                        state={activePlan === message.plan ? planState : 'idle'}
-                        interactive={activePlan === message.plan}
-                        onExecute={() => void runPlan()}
-                        onCancel={cancelPlan}
-                      />
-                    ) : null}
-                    {message.manualPath ? (
-                      <Link className="text-link" to={message.manualPath}>打开手动工具 →</Link>
-                    ) : null}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div ref={chatEndRef} />
+            ))}
           </div>
+        </ChatLayout>
+      )}
 
-          <div className="ai-composer">
-            <textarea
-              rows={2}
-              value={input}
-              onChange={(event) => setInput(event.target.value)}
-              onKeyDown={onComposerKeyDown}
-              placeholder={metas.length ? '例如：删除第 2 页，再旋转剩余页面 90 度' : '先添加文件，再输入中文指令'}
-              data-testid="ai-command"
-              disabled={busy || metas.length === 0}
-            />
-            <div className="ai-composer-actions">
-              <span className="ai-composer-hint">{plannerConfigured && selectedMembership ? '复杂指令会发送指令和文件信息到云端规划。' : ''}</span>
-              <button type="button" className="button button-accent" onClick={() => void submitCommand()} disabled={busy || !input.trim() || metas.length === 0} data-testid="ai-command-send">
-                <SparklesIcon size={16} /> 解析指令
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <section className="ai-preview-panel" data-testid="ai-preview">
-          <WorkspacePreview
-            files={files}
-            metas={metas}
-            originalFile={originalFile}
-            showCompare={planState === 'done' || stage === 'preview_ready'}
-            onDownload={(file) => downloadFile(file)}
-            onClear={() => {
-              setFiles([]);
-              setMetas([]);
-              setOriginalFile(null);
-              setStage('empty');
-              setActivePlan(null);
-              setMessages([]);
-              setCheckpoints([]);
-            }}
-          />
-          <div className="workspace-actions">
-            <button type="button" className="button button-ghost" onClick={undo} disabled={checkpoints.length === 0 || busy} data-testid="ai-undo">
-              <RefreshIcon size={15} /> 撤销
-            </button>
-            <button type="button" className="button button-ghost" onClick={() => void saveLocalDraft()} disabled={files.length === 0 || draftBusy || !storageSupported()} data-testid="ai-save-draft">
-              保存到本机
-            </button>
-            {drafts.length > 0 ? <span className="muted">{drafts.length} 个本机草稿</span> : null}
-          </div>
-          {!storageSupported() ? <p className="fine-print">当前浏览器不支持本机草稿；请及时下载结果。</p> : null}
-          {error ? <div className="notice notice-error" role="alert" data-testid="ai-workspace-error">{error}</div> : null}
-        </section>
-      </div>
-    </div>
-  );
-}
-
-function ModeTabs({ mode, onChange }: { mode: Mode; onChange: (mode: Mode) => void }) {
-  return (
-    <div className="workspace-tabs" role="tablist" aria-label="AI 工作区模式">
-      <button type="button" role="tab" aria-selected={mode === 'files'} className={mode === 'files' ? 'active' : ''} onClick={() => onChange('files')} data-testid="ai-mode-files">文件工作台</button>
-      <button type="button" role="tab" aria-selected={mode === 'image'} className={mode === 'image' ? 'active' : ''} onClick={() => onChange('image')} data-testid="ai-mode-image">生成图片</button>
+      <FilePreviewDrawer target={previewTarget} onClose={() => setPreviewTarget(null)} />
+      {imageOpen ? (
+        <ImageModal
+          status={status}
+          authenticated={Boolean(session)}
+          memberships={memberships}
+          selectedTenantId={selectedTenantId}
+          onClose={() => setImageOpen(false)}
+          onUseFile={useGeneratedFile}
+        />
+      ) : null}
     </div>
   );
 }
@@ -727,90 +665,98 @@ function PlanCard({
   );
 }
 
-function WorkspacePreview({
-  files,
-  metas,
-  originalFile,
-  showCompare,
+
+function ChatFileRow({
+  file,
+  meta,
+  onPreview,
   onDownload,
+}: {
+  file: File;
+  meta: WorkspaceFileMeta;
+  onPreview: () => void;
+  onDownload?: () => void;
+}) {
+  return (
+    <div className="chat-file-row file-row" data-testid="ai-attachment">
+      <button type="button" className="chat-file-main" onClick={onPreview}>
+        <span className="chat-file-icon">{meta.kind === 'pdf' ? <FileIcon size={18} /> : <SparklesIcon size={18} />}</span>
+        <span>
+          <strong>{meta.name}</strong>
+          <small>{describeFile(meta)} · {formatBytes(file.size)}</small>
+        </span>
+      </button>
+      {onDownload ? (
+        <button type="button" className="chat-file-download" aria-label={`下载 ${meta.name}`} onClick={onDownload} data-testid="ai-file-download">
+          <DownloadIcon size={16} />
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+function DraftPanel({
+  drafts,
+  busy,
+  onRestore,
+  onRemove,
   onClear,
 }: {
-  files: File[];
-  metas: WorkspaceFileMeta[];
-  originalFile: File | null;
-  showCompare: boolean;
-  onDownload: (file: File) => void;
+  drafts: DraftRecord[];
+  busy: boolean;
+  onRestore: (draft: DraftRecord) => void;
+  onRemove: (draft: DraftRecord) => void;
   onClear: () => void;
 }) {
-  const first = files[0] ?? null;
-  const imageUrl = useObjectUrl(first?.type.startsWith('image/') ? first : null);
-  const [pdfSide, setPdfSide] = useState<'result' | 'original'>('result');
-
-  useEffect(() => setPdfSide('result'), [files]);
-
-  if (files.length === 0) {
-    return (
-      <div className="preview-empty">
-        <FileIcon size={34} />
-        <h2>预览会出现在这里</h2>
-        <p>上传文件后显示页数或图片尺寸；执行计划后显示结果。原文件始终保留。</p>
-      </div>
-    );
-  }
-
-  if (files.length > 1) {
-    return (
-      <div className="preview-multi">
-        <div className="preview-head"><h2>当前结果 · {files.length} 个文件</h2><button type="button" className="text-button" onClick={onClear}>清空</button></div>
-        <div className="preview-file-grid">
-          {files.map((file, index) => (
-            <div className="preview-file-card" key={`${file.name}-${index}`}>
-              <span className="file-kind">{metas[index]?.kind === 'pdf' ? 'PDF' : 'IMG'}</span>
-              <strong>{file.name}</strong>
-              <small>{formatBytes(file.size)}</small>
-              <button type="button" className="button button-ghost button-small" onClick={() => onDownload(file)} data-testid="ai-file-download">
-                <DownloadIcon size={14} /> 下载
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  const meta = metas[0];
-  const canCompareImage = showCompare && originalFile && first?.type.startsWith('image/') && originalFile !== first;
+  if (drafts.length === 0) return null;
   return (
-    <div className="preview-single">
-      <div className="preview-head">
-        <div>
-          <h2>当前结果</h2>
-          <p>{meta ? describeFile(meta) : ''} · {formatBytes(first?.size ?? 0)}</p>
+    <div className="workspace-drafts" data-testid="ai-draft-list">
+      <div className="workspace-section-head"><strong>本机草稿</strong><button type="button" className="text-button" onClick={onClear} disabled={busy} data-testid="ai-clear-drafts">清空</button></div>
+      {drafts.map((draft) => (
+        <div className="workspace-draft-row" key={draft.id}>
+          <button type="button" className="workspace-draft-main" onClick={() => onRestore(draft)} data-testid="ai-restore-draft">
+            <span>{draft.title}</span>
+            <small>{new Date(draft.updatedAt).toLocaleString('zh-CN')}</small>
+          </button>
+          <button type="button" className="icon-button" aria-label="删除草稿" onClick={() => onRemove(draft)}><TrashIcon size={14} /></button>
         </div>
-        <div className="preview-head-actions">
-          <button type="button" className="button button-ghost button-small" onClick={() => onDownload(first)} data-testid="ai-file-download"><DownloadIcon size={14} /> 下载</button>
-          <button type="button" className="text-button" onClick={onClear}>清空</button>
+      ))}
+    </div>
+  );
+}
+
+function ImageModal({
+  status,
+  authenticated,
+  memberships,
+  selectedTenantId,
+  onClose,
+  onUseFile,
+}: {
+  status: string;
+  authenticated: boolean;
+  memberships: Array<{ tenantId: string; tenantName: string }>;
+  selectedTenantId: string;
+  onClose: () => void;
+  onUseFile: (file: File) => Promise<void>;
+}) {
+  return (
+    <div className="ai-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+      <section className="ai-image-modal" role="dialog" aria-label="生成图片">
+        <header className="ai-image-modal-head">
+          <h1>AI 出图</h1>
+          <button type="button" className="icon-button" aria-label="关闭" onClick={onClose}>×</button>
+        </header>
+        <div className="ai-image-modal-body">
+          {status === 'loading' ? <div className="page-loading">正在加载…</div> : !authenticated ? (
+            <div className="empty-page"><SparklesIcon size={44} /><h1>登录后使用 AI 出图</h1><p>PDF 和图片工具无需登录。</p><Link to="/login?next=/ai/image" className="button button-accent">登录</Link></div>
+          ) : memberships.length === 0 ? (
+            <div className="empty-page"><h1>还没有空间</h1><p>请联系空间管理员邀请你加入。</p><Link to="/account" className="button button-ghost">查看账户</Link></div>
+          ) : selectedTenantId ? (
+            <ImageStudioPanel tenantId={selectedTenantId} onUseFile={onUseFile} />
+          ) : <div className="page-loading">正在读取空间…</div>}
         </div>
-      </div>
-      {first?.type === 'application/pdf' || /\.pdf$/i.test(first?.name ?? '') ? (
-        <>
-          {showCompare && originalFile ? (
-            <div className="preview-side-switch">
-              <button type="button" className={pdfSide === 'result' ? 'active' : ''} onClick={() => setPdfSide('result')}>结果</button>
-              <button type="button" className={pdfSide === 'original' ? 'active' : ''} onClick={() => setPdfSide('original')}>原文件</button>
-            </div>
-          ) : null}
-          <PdfPreview file={pdfSide === 'original' && originalFile ? originalFile : first} />
-        </>
-      ) : first?.type.startsWith('image/') && imageUrl ? (
-        canCompareImage && originalFile ? (
-          <BeforeAfter before={originalFile} after={first} beforeLabel="原图" afterLabel="当前结果" />
-        ) : (
-          <div className="workspace-image-preview"><img src={imageUrl} alt="当前图片结果" /></div>
-        )
-      ) : (
-        <div className="workspace-text-preview"><FileIcon size={26} /><p>{first?.name}</p><small>{formatBytes(first?.size ?? 0)}</small></div>
-      )}
+      </section>
     </div>
   );
 }

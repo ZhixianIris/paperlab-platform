@@ -165,8 +165,9 @@ display name is generic in the UI and it is not a real provider result.
 | | |
 | --- | --- |
 | **PDF workbench** ![PDF workbench](docs/screenshots/pdf-workbench.png) | **Image workbench** ![Image workbench](docs/screenshots/image-workbench.png) |
-| **Natural-language workspace** ![AI workspace](docs/screenshots/ai-workspace.png) | **Login** ![Login](docs/screenshots/login.png) |
-| **Offline workspace result** ![Offline workspace](docs/screenshots/workspace-offline-result.png) | **AI studio** ![AI studio](docs/screenshots/ai-studio.png) |
+| **Chat-first workspace** ![AI workspace](docs/screenshots/ai-workspace.png) | **Plan in conversation** ![AI chat plan](docs/screenshots/ai-chat-plan.png) |
+| **Preview drawer opened from a file card** ![AI preview](docs/screenshots/ai-preview.png) | **Image generation in the same page** ![AI studio](docs/screenshots/ai-studio.png) |
+| **Offline workspace result** ![Offline workspace](docs/screenshots/workspace-offline-result.png) | **Login** ![Login](docs/screenshots/login.png) |
 | **Drag-to-crop editor** ![Image crop](docs/screenshots/image-crop.png) | **Drag-to-resize editor** ![Image resize](docs/screenshots/image-resize.png) |
 | **PDF merge, never uploaded** ![PDF merge](docs/screenshots/pdf-merge.png) | **Offline PDF merge proof** ![Offline merge](docs/screenshots/offline-pdf-merge.png) |
 | **Tenant workspace with budgets** ![Tenant](docs/screenshots/tenant-alpha.png) | **Admin overview** ![Admin overview](docs/screenshots/admin-overview.png) |
