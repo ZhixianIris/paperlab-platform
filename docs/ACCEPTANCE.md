@@ -13,7 +13,7 @@ not represented as passed. See [docs/WAVE_A_B.md](WAVE_A_B.md).
 
 | Area | Status | Evidence / boundary |
 | --- | --- | --- |
-| Unified `/ai` workspace | **PASS** | Attachment/chat/plan/preview/undo/download; `/ai/image` is the generation tab, not a second business page |
+| Unified `/ai` workspace | **PASS** | ChatGPT-style centered empty state; paperclip attachment in composer; preview drawer only after clicking a conversation file card; image generation is a modal on the same page |
 | Natural-language local execution | **PASS** | Chinese delete/rotate/merge/numbers/watermark/text/image compress/watermark/convert tested; ambiguity asks for clarification |
 | 41-tool adapter registry | **PASS** | 23 PDF + 18 image keys bound once to existing operations; interactive region/form/stamp tools are manual-only |
 | Local drafts + 2 checkpoints | **PASS** | OPFS files + IndexedDB metadata; save/reload/restore/clear E2E; in-memory undo only |
@@ -120,6 +120,8 @@ real running UI backed by PostgreSQL. AI screenshots use the deterministic local
 fixture with a generic label; no external model is claimed.
 
 - [ai-workspace.png](screenshots/ai-workspace.png)
+- [ai-chat-plan.png](screenshots/ai-chat-plan.png)
+- [ai-preview.png](screenshots/ai-preview.png)
 - [workspace-offline-result.png](screenshots/workspace-offline-result.png)
 - [pdf-workbench.png](screenshots/pdf-workbench.png)
 - [image-workbench.png](screenshots/image-workbench.png)

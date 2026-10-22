@@ -3,7 +3,7 @@
 PaperLab includes and depends on third-party open-source software. This file is
 generated from the installed npm tree by "npm run audit:licenses".
 
-- Generated: 2026-10-21T15:54:36.022Z
+- Generated: 2026-10-22T00:09:37.814Z
 - Packages audited: 706
 - Denied packages: 0
 - Full machine-readable inventory: [docs/dependency-licenses.json](docs/dependency-licenses.json)
@@ -16,6 +16,11 @@ Parts of the local PDF merge/split/rotate implementations are adapted from
 dda3a240772459035eb38b14c5c7d94e81626116, MIT licensed. The original MIT
 license is preserved at third_party/omni-tools/LICENSE; modifications are
 documented in third_party/omni-tools/SOURCE.md.
+
+The ChatLayout/WelcomeMessage interaction pattern is adapted from
+**@ant-design/agentic-ui** (https://github.com/antdigital-ai/agentic-ui) at
+commit 685f0a4bc14e2ef1a736a678eedd9fdc2a7a5f95, MIT licensed. No upstream
+package or antd runtime is bundled. See third_party/agentic-ui/SOURCE.md.
 
 No AGPL, GPL, SSPL, BUSL, Commons Clause or unreviewed production-license
 component is used. If a future dependency introduces one, "audit:licenses"
