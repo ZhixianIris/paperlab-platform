@@ -8,8 +8,8 @@ balances, orders, tenants and admin actions live in CloudBase.
 > **Honest delivery status:** all offline code, PostgreSQL migrations, RLS,
 > transaction billing, provider adapter, admin/tenant UI, tests and declarative
 > deployment are implemented. GitHub Actions verification is green
-> ([PR CI run 39630410165](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39630410165),
-> [main verification run 39631026730](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39631026730));
+> ([PR #7 CI run 39698294135](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39698294135),
+> [main verification run 39699118513](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39699118513));
 > the CloudBase **deploy job is skipped** because no environment or credentials
 > were supplied. Therefore there is no production URL and no real
 > CloudBase/AI/payment acceptance result. See
@@ -18,10 +18,10 @@ balances, orders, tenants and admin actions live in CloudBase.
 > [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md).
 
 - Repository: https://github.com/ZhixianIris/paperlab-platform
-- Verified feature commit on `main`: `51e1404f333e0831e5233612c9a0290a8a37b112`
-- PR: https://github.com/ZhixianIris/paperlab-platform/pull/6
-- PR CI: https://github.com/ZhixianIris/paperlab-platform/actions/runs/39630410165
-- Main verification: https://github.com/ZhixianIris/paperlab-platform/actions/runs/39631026730
+- Verified feature commit on `main`: `e6d2ff8` (Wave A+B foundation `51e1404`)
+- UI PR: https://github.com/ZhixianIris/paperlab-platform/pull/7
+- PR CI: https://github.com/ZhixianIris/paperlab-platform/actions/runs/39698294135
+- Main verification: https://github.com/ZhixianIris/paperlab-platform/actions/runs/39699118513
   (deploy skipped; no credentials)
 
 

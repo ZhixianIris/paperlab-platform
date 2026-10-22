@@ -4,11 +4,11 @@ Repository: https://github.com/ZhixianIris/paperlab-platform
 
 ## Main verification — PASS
 
-- Commit: `51e1404f333e0831e5233612c9a0290a8a37b112`
-- Pull request: https://github.com/ZhixianIris/paperlab-platform/pull/6
-- PR CI run: https://github.com/ZhixianIris/paperlab-platform/actions/runs/39630410165
+- Commit: `e6d2ff8` (Wave A+B foundation `51e1404`)
+- Pull request: https://github.com/ZhixianIris/paperlab-platform/pull/7
+- PR CI run: https://github.com/ZhixianIris/paperlab-platform/actions/runs/39698294135
 - Workflow: **Deploy production** (`.github/workflows/deploy.yml`)
-- Main run: https://github.com/ZhixianIris/paperlab-platform/actions/runs/39631026730
+- Main run: https://github.com/ZhixianIris/paperlab-platform/actions/runs/39699118513
 - Result: `success`
 - Verify job: `success` (~2 min)
 - Verification included: `npm ci`, PostgreSQL 16 service, migrations,
@@ -21,8 +21,8 @@ Repository: https://github.com/ZhixianIris/paperlab-platform
 
 ## Pull request verification — PASS, no deployment
 
-- PR #6 (`feat/ai-local-workspace`) was merged after green CI; its branch was deleted.
-- Workflow run: https://github.com/ZhixianIris/paperlab-platform/actions/runs/39630410165
+- PR #7 (`feat/ai-chatgpt-ui`) was merged after green CI; its branch was deleted.
+- Workflow run: https://github.com/ZhixianIris/paperlab-platform/actions/runs/39698294135
 - Trigger: `pull_request`
 - Result: `success`
 - Jobs: only `Verify`; there is no deploy job and no `tcb deploy` command in the

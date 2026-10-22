@@ -1,11 +1,10 @@
 # Acceptance status
 
-Wave A + B are merged to `main` at `51e1404f333e0831e5233612c9a0290a8a37b112`.
-PR [#6](https://github.com/ZhixianIris/paperlab-platform/pull/6) CI run
-[39630410165](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39630410165)
-is green; main verification run
-[39631026730](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39631026730)
-is green and the CloudBase deploy job was skipped for missing credentials.
+Wave A + B are merged to `main`; the ChatGPT-style conversation revision is
+`e6d2ff8` (PR [#7](https://github.com/ZhixianIris/paperlab-platform/pull/7), CI
+[39698294135](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39698294135),
+main [39699118513](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39699118513)).
+The CloudBase deploy job was skipped for missing credentials.
 CloudBase production deployment, a real model key and other external items are
 not represented as passed. See [docs/WAVE_A_B.md](WAVE_A_B.md).
 
@@ -42,7 +41,7 @@ not represented as passed. See [docs/WAVE_A_B.md](WAVE_A_B.md).
 | Payment API + disabled boundary | **PASS (boundary) / BLOCKED (provider)** | `orders.create` returns `payments_disabled`; no fake order/payment; callback not implemented |
 | Declarative config v2.1 + CLI 3.8.4 | **PASS (static/official validate)** | `tcb validate` → `valid: true`; config/workflow guard checks 43/43 |
 | GitHub PR does not deploy | **PASS (actual)** | Temporary PR #1 run [39593194243](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39593194243) — only `Verify`, no deploy job |
-| Actual GitHub Actions run | **PASS** | PR #6 CI [39630410165](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39630410165) and main verification [39631026730](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39631026730) succeeded; 30 API + 19 unit + 45 Playwright; main deploy skipped (no credentials) |
+| Actual GitHub Actions run | **PASS** | PR #7 CI [39698294135](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39698294135) and main verification [39699118513](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39699118513) succeeded; 30 API + 19 unit + 45 Playwright; main deploy skipped (no credentials) |
 | Actual CloudBase deploy / public URL | **BLOCKED_EXTERNAL** | No credentials. Main workflow preflight skipped deploy after warnings; no URL can be honestly supplied |
 | SPA fallback `/admin`, `/t/*` | **PASS (local preview routing)**; **BLOCKED (CloudBase error-document setting)** | App uses BrowserRouter; deploy script sets hosting error document and smoke tests it |
 | License audit | **PASS** | 706 packages locally / 708 on Linux CI; 0 denied; AGPL/GPL/SSPL/BUSL fail closed; one reviewed dev-only CloudBase no-license package, not distributed |
@@ -140,9 +139,8 @@ fixture with a generic label; no external model is claimed.
 
 ## GitHub Actions evidence
 
-- Wave A+B PR CI: [run 39630410165](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39630410165) — success; 30 API + 19 unit + 45 Playwright; no deploy job.
-- Merged main verification: [run 39631026730](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39631026730) — success; deploy skipped by credential preflight.
-- Final docs CI: [run 39631683556](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39631683556) — success; deploy skipped.
+- Wave A+B + chat UI PR CI: [run 39698294135](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39698294135) — success; 30 API + 19 unit + 45 Playwright; no deploy job.
+- Merged main verification: [run 39699118513](https://github.com/ZhixianIris/paperlab-platform/actions/runs/39699118513) — success; deploy skipped by credential preflight.
 - Details and the private-repo Actions billing note: [evidence/github-actions.md](evidence/github-actions.md).
 
 ## Failures
